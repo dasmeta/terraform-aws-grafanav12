@@ -63,6 +63,10 @@ module "loki_bucket" {
   version = "1.3.2"
 
   name = local.loki_s3_bucket_name
+
+  restrict_public_buckets = true
+  block_public_acls       = true
+  block_public_policy     = true
 }
 
 module "tempo_bucket" {
@@ -70,6 +74,10 @@ module "tempo_bucket" {
   version = "1.3.2"
 
   name = local.tempo_s3_bucket_name
+
+  restrict_public_buckets = true
+  block_public_acls       = true
+  block_public_policy     = true
 }
 
 module "s3_eks_role" {

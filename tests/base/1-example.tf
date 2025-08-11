@@ -138,7 +138,7 @@ module "this" {
       path_type = "Prefix"
     }
   }
-  grafana_admin_password = "adminPassport333"
+  grafana_admin_password = "admin"
   # dashboards_json_files = [
   #   "./dashboard_files/ALB_dashboard.json",
   #   "./dashboard_files/Application_main_dashboard.json"
