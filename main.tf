@@ -1,6 +1,6 @@
 module "this" {
-  source = "../terraform-onpremise-grafana"
-  # version = "1.24.1"
+  source  = "dasmeta/grafana/onpremise"
+  version = "1.24.3"
 
   name = var.deployment_name
 
@@ -15,7 +15,7 @@ module "this" {
     database          = var.grafana.database
     persistence       = var.grafana.persistence
     redundancy        = var.grafana.redundancy
-    datasource        = var.grafana.datasources
+    datasource        = local.grafana_datasources
     trace_log_mapping = var.grafana.trace_log_mapping
     replicas          = var.grafana.replicas
     service_account   = local.grafana_service_account

@@ -87,7 +87,7 @@ module "this" {
         "alb.ingress.kubernetes.io/group.name" = "dev-ingress"
       }
     }
-    datasources = [{ type = "cloudwatch", name = "Cloudwatch" }]
+
 
   }
 
@@ -137,6 +137,10 @@ module "this" {
       }
       path_type = "Prefix"
     }
+
+    storage_class = "gp2"
+    storage_size  = "26Gi"
+
   }
   grafana_admin_password = "admin"
   # dashboards_json_files = [

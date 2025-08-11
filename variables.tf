@@ -241,7 +241,7 @@ variable "grafana" {
       min_replicas = optional(number, 1)
     }), {})
 
-    datasources = optional(list(map(any))) # a list of grafana datasource configurations. Based on the type of the datasource the module will fill in the missing configuration for some supported datasources. Mandatory are name and type fields
+    datasources = optional(list(map(any)), []) # a list of grafana datasource configurations. Based on the type of the datasource the module will fill in the missing configuration for some supported datasources. Mandatory are name and type fields
     trace_log_mapping = optional(object({
       enabled       = optional(bool, false)
       trace_pattern = optional(string, "trace_id=(\\w+)")

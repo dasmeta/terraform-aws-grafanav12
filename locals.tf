@@ -181,6 +181,17 @@ locals {
     )
   }
 
+  grafana_datasources = concat([{
+    type        = "cloudwatch"
+    name        = "Cloudwatch"
+    access_mode = "proxy"
+    uid         = "cloudwatch"
+    encoded_json = jsonencode({
+      authType      = "default"
+      defaultRegion = data.aws_region.current.name
+    })
+    is_default = false
+  }], var.grafana.datasources)
 
   grafana_ingress = {
     annotations = merge(var.grafana.ingress.additional_annotations, length(var.grafana.ingress.alb_certificate) > 0 ? { "alb.ingress.kubernetes.io/certificate-arn" = var.grafana.ingress.alb_certificate } : {})
