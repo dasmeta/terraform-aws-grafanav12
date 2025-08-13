@@ -1,4 +1,4 @@
-# terraform-onpremise-grafana
+# terraform-aws-grafana
 https://registry.terraform.io/modules/dasmeta/grafana/onpremise/latest
 
 This module is created to manage any cloud and OnPremise Grafana stack with Terraform, right now only aws eks supported(TODO: implement to support more clouds)
@@ -21,117 +21,115 @@ Grafana provider sometimes has issues with endpoints behind WAFs: https://github
 
 ## example for dashboard
 ```hcl
-module "grafana_monitoring" {
-  source  = "dasmeta/grafana/onpremise"
-  version = "1.7.0"
+module "this" {
+  source = "../.."
 
-  name = "Test-dashboard"
+  name         = "Test-dashboard"
+  cluster_name = "eks-dev"
 
   application_dashboard = {
     rows : [
-      { type : "block/sla" },
-      { type : "block/ingress" },
-      { type : "block/service", name : "service-name-1", host : "example.com" },
-      { type : "block/service", name : "service-name-2" },
-      { type : "block/service", name : "service-name-3" }
+      { type : "block/sla", sla_ingress_type = "alb", load_balancer_arn = "load_balancer_arn", datasource_uid = "cloudwatch", region = "us-east-2" },
+      { type : "block/alb_ingress", load_balancer_arn = "load_balancer_arn", region : "us-east-2" },
+      { type : "block/service", name = "worker", show_err_logs = true },
+      { type : "block/cloudwatch", region : "us-east-2" }
     ]
     data_source = {
-      uid : "00000"
+      uid : "cloudwatch"
     }
     variables = [
       {
         "name" : "namespace",
         "options" : [
           {
-            "selected" : true,
             "value" : "prod"
           },
           {
-            "value" : "stage"
-          },
-          {
+            "selected" : true,
             "value" : "dev"
           }
         ],
       }
     ]
   }
-}
-```
-
-## Example for Alerts
-```
-module "grafana_alerts" {
-  source  = "dasmeta/grafana/onpremise//modules/alerts"
-  version = "1.7.0"
-
   alerts = {
     rules = [
       {
-        name        = "App_1 has 0 available replicas"
-        folder_name = "Replica Count"
-        datasource  = "prometheus"
-        metric_name = "kube_deployment_status_replicas_available"
-        filters = {
-          deployment = "app-1-microservice"
+        "datasource" : "prometheus",
+        "equation" : "gt",
+        "expr" : "avg(increase(nginx_ingress_controller_request_duration_seconds_sum[3m])) / 10",
+        "folder_name" : "Nginx Alerts",
+        "function" : "mean",
+        "name" : "Latency P1",
+        "labels" : {
+          "priority" : "P1",
         }
-        function  = "last"
-        equation = "lt"
-        threshold = 1
+        "threshold" : 3
+
+        # we override no-data/exec-error state for this example/test only, it is supposed this values will not be set here so they get their default ones
+        "no_data_state" : "OK"
+        "exec_err_state" : "OK"
+        # "exec_err_state" : "Alerting" # uncomment to trigger new alert
       },
       {
-        name        = "Nginx Expressions"
-        folder_name = "Nginx Expressions Group"
-        datasource  = "prometheus"
-        expr        = "sum(rate(nginx_ingress_controller_requests{status=~'5..'}[1m])) by (ingress,cluster) / sum(rate(nginx_ingress_controller_requests[1m]))by (ingress) * 100 > 5"
-        function    = "mean"
-        equation    = "gt"
-        threshold   = 2
-      },
+        "datasource" : "prometheus",
+        "equation" : "gt",
+        "expr" : "avg(increase(nginx_ingress_controller_request_duration_seconds_sum[3m])) / 10",
+        "folder_name" : "Nginx Alerts",
+        "function" : "mean",
+        "name" : "Latency P2",
+        "labels" : {
+          "priority" : "P2",
+        }
+        "threshold" : 3
+
+        # we override no-data/exec-error state for this example/test only, it is supposed this values will not be set here so they get their default ones
+        "no_data_state" : "OK"
+        "exec_err_state" : "OK"
+        # "exec_err_state" : "Alerting" # uncomment to trigger new alert
+      }
     ]
-    contact_points = {
-      opsgenie = [
-        {
-          name       = "opsgenie"
-          api_key    = "xxxxxxxxxxxxxxxx"
-          auto_close = true
-        }
-      ]
-      slack = [
-        {
-          name        = "slack"
-          webhook_url = "https://hooks.slack.com/services/xxxxxxxxxxxxxxxx"
-        }
-      ]
-    }
-    notifications = {
-      contact_point : "slack"
-      "policies" : [
-        {
-          contact_point : "opsgenie"
-          matchers : [{ label : "priority", match : "=", value : "P1" }]
-        },
-        {
-          "contact_point" : "slack"
-        }
-      ]
-    }
   }
+
+  grafana = {
+
+    resources = {
+      request = {
+        cpu = "1"
+        mem = "1Gi"
+      }
+    }
+    ingress = {
+      type            = "alb"
+      tls_enabled     = true
+      public          = true
+      alb_certificate = "cert_arn"
+
+      hosts = ["grafana.example.com"]
+      additional_annotations = {
+        "alb.ingress.kubernetes.io/group.name" = "dev-ingress"
+      }
+    }
+
+
+  }
+
+  tempo = {
+    enabled = true
+  }
+
+  loki = {
+    enabled = true
+
+  }
+
+  prometheus = {
+    enabled = true
+  }
+
+  grafana_admin_password = "admin"
 }
 ```
-
-## Usage
-Check `./tests`, `modules/alert-rules/tests`, `modules/alert-contact-points/tests` and `modules/alert-notifications/tests` folders to see more examples.
-
-## release important notes
-- 1.21.0 => 1.22.0
-  - we have sla(nginx)/ingress(nginx)/service block alerts integration so that alerts for this dashboard blocks will be created(the service block need to have namespace set), please check `/tests/dashboard-widget-alerts-enabled` example for full complete possible options
-  - all underlying components got upgraded and some have incompatible changes
-  - loki-stack have been removed and replaced with separate loki and promtail helm charts, to not have issue before applying the new version remove "loki-stack" chart via command:
-  ```terraform
-  helm uninstall loki-stack
-  ```
-  - there is an issue related to dependencies, when we have alerts created and we change grafana/prometheus some params we get `'The "count" value depends on resource attributes that cannot be determined until apply'` error. As workaround just disable alerts and apply things and then red-enable apply again
 
 <!-- BEGINNING OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
 ## Requirements
@@ -158,7 +156,7 @@ Check `./tests`, `modules/alert-rules/tests`, `modules/alert-contact-points/test
 | <a name="module_loki_bucket"></a> [loki\_bucket](#module\_loki\_bucket) | dasmeta/s3/aws | 1.3.2 |
 | <a name="module_s3_eks_role"></a> [s3\_eks\_role](#module\_s3\_eks\_role) | dasmeta/iam/aws//modules/role | 1.3.0 |
 | <a name="module_tempo_bucket"></a> [tempo\_bucket](#module\_tempo\_bucket) | dasmeta/s3/aws | 1.3.2 |
-| <a name="module_this"></a> [this](#module\_this) | dasmeta/grafana/onpremise | 1.24.3 |
+| <a name="module_this"></a> [this](#module\_this) | dasmeta/grafana/onpremise | 1.24.4 |
 
 ## Resources
 
