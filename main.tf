@@ -1,6 +1,6 @@
 module "this" {
   source  = "dasmeta/grafana/onpremise"
-  version = "1.24.3"
+  version = "1.24.4"
 
   name = var.deployment_name
 
