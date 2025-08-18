@@ -15,7 +15,7 @@ module "this" {
     database          = var.grafana.database
     persistence       = var.grafana.persistence
     redundancy        = var.grafana.redundancy
-    datasource        = local.grafana_datasources
+    datasources       = local.grafana_datasources
     trace_log_mapping = var.grafana.trace_log_mapping
     replicas          = var.grafana.replicas
     service_account   = local.grafana_service_account
