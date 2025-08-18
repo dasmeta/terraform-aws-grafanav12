@@ -53,7 +53,7 @@ module "this" {
   }
 
 
-  grafana_admin_password = "adminPassport333"
+  grafana_admin_password = var.grafana_admin_password
 
 }
 
