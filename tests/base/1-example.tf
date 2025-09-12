@@ -1,18 +1,18 @@
 module "this" {
   source = "../.."
 
-  name         = "Test-dashboard"
   cluster_name = "eks-dev"
 
-  application_dashboard = {
+  application_dashboard = [{
+    name = "Test-dashboard"
     rows : [
       { type : "block/sla", sla_ingress_type = "alb", load_balancer_arn = "load_balancer_arn", datasource_uid = "cloudwatch", region = "us-east-2" },
-      { type : "block/alb_ingress", load_balancer_arn = "load_balancer_arn", region : "us-east-2" },
-      { type : "block/service", name = "worker", show_err_logs = true },
-      { type : "block/cloudwatch", region : "us-east-2" }
+      # { type : "block/alb_ingress", load_balancer_arn = "load_balancer_arn", region : "us-east-2" },
+      { type : "block/service", name = "backend", show_err_logs = true },
+      # { type : "block/cloudwatch", region : "us-east-2" }
     ]
     data_source = {
-      uid : "cloudwatch"
+      uid : "prometheus"
     }
     variables = [
       {
@@ -28,7 +28,8 @@ module "this" {
         ],
       }
     ]
-  }
+  }]
+
   alerts = {
     rules = [
       {
@@ -69,7 +70,6 @@ module "this" {
   }
 
   grafana = {
-
     resources = {
       request = {
         cpu = "1"
@@ -84,62 +84,34 @@ module "this" {
 
       hosts = ["grafana.example.com"]
       additional_annotations = {
-        "alb.ingress.kubernetes.io/group.name" = "dev-ingress"
+        "alb.ingress.kubernetes.io/group.name"  = "dev-ingress"
+        "alb.ingress.kubernetes.io/group.order" = "20"
       }
     }
-
+    datasources = [
+      {
+        type    = "prometheus"
+        name    = "Prometheus-flagger"
+        uid     = "prometheus-flagger"
+        url     = "http://prometheus.example.com:9090"
+        default = false
+      }
+    ]
 
   }
 
   tempo = {
     enabled = true
 
-    metrics_generator = {
-      enabled = true
-    }
-    enable_service_monitor = true
-
-    persistence = {
-      enabled = true
-      size    = "10Gi"
-    }
   }
 
   loki = {
     enabled = true
 
-    ingress = {
-      enabled = true
-      hosts   = ["loki.example.com"]
-      additional_annotations = {
-        "alb.ingress.kubernetes.io/certificate-arn" = "cert_arn"
-        "alb.ingress.kubernetes.io/group.name"      = "dev-ingress"
-      }
-    }
-
-    promtail = {
-      log_format         = "json"
-      ignored_containers = ["kube-system"]
-
-    }
-
   }
 
   prometheus = {
     enabled = true
-
-    ingress = {
-      enabled = true
-      hosts   = ["prometheus.example.com"]
-      additional_annotations = {
-        "alb.ingress.kubernetes.io/certificate-arn" = "cert_arn"
-        "alb.ingress.kubernetes.io/group.name"      = "dev-ingress"
-      }
-      path_type = "Prefix"
-    }
-
-    storage_class = "gp2"
-    storage_size  = "26Gi"
 
   }
   grafana_admin_password = "admin"
