@@ -1,8 +1,6 @@
 module "this" {
   source  = "dasmeta/grafana/onpremise"
-  version = "1.24.4"
-
-  name = var.deployment_name
+  version = "1.26.0"
 
   application_dashboard = var.application_dashboard
 
@@ -35,7 +33,7 @@ module "this" {
   }
 
   loki = {
-    enabled  = true
+    enabled  = var.loki.enabled
     loki     = local.loki_configs
     promtail = local.promtail_configs
   }
@@ -117,7 +115,7 @@ module "grafana_cloudwatch_role" {
       conditions = [{
         type  = "StringEquals"
         key   = "${replace(data.aws_eks_cluster.this.identity[0].oidc[0].issuer, "https://", "")}:sub"
-        value = ["system:serviceaccount:${var.namespace}:grafana-service-account"]
+        value = ["system:serviceaccount:${var.namespace}:${var.grafana.service_account.name}"]
       }]
       actions = ["sts:AssumeRoleWithWebIdentity"]
     }
