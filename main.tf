@@ -1,6 +1,6 @@
 module "this" {
   source  = "dasmeta/grafana/onpremise"
-  version = "1.26.0"
+  version = "1.26.1"
 
   application_dashboard = var.application_dashboard
 

@@ -295,8 +295,9 @@ variable "prometheus" {
       path                   = optional(list(string), ["/"])
       path_type              = optional(string, "Prefix")
     }), {})
-    replicas            = optional(number, 2)
-    enable_alertmanager = optional(bool, true)
+    replicas                  = optional(number, 2)
+    enable_alertmanager       = optional(bool, true)
+    additional_scrape_configs = optional(any, []) # allows to specify additional scrape configs to be added to the prometheus helm chart
     kubelet_metrics = optional(list(string), ["container_cpu_.*", "container_memory_.*", "kube_pod_container_status_.*",
       "kube_pod_container_resource_*", "container_network_.*", "kube_pod_resource_limit",
       "kube_pod_resource_request", "pod_cpu_usage_seconds_total", "pod_memory_usage_bytes",
@@ -360,6 +361,7 @@ variable "loki" {
       storage_class = optional(string, "gp2")
       access_mode   = optional(string, "ReadWriteOnce")
     }), {})
+    limits_config = optional(map(string), {})
     schema_configs = optional(list(object({
       from         = optional(string, "2025-01-01") # defines starting at which date this storage schema will be applied
       object_store = optional(string, "s3")
