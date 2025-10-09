@@ -97,7 +97,6 @@ module "this" {
         default = false
       }
     ]
-
   }
 
   tempo = {
@@ -112,7 +111,6 @@ module "this" {
 
   prometheus = {
     enabled = true
-
   }
   grafana_admin_password = "admin"
   # dashboards_json_files = [

@@ -270,18 +270,18 @@ variable "prometheus" {
   type = object({
     enabled        = optional(bool, true)
     chart_version  = optional(string, "75.8.0")
-    retention_days = optional(string, "15d")
+    retention_days = optional(string, "30d")
     storage_class  = optional(string, "gp2")
     storage_size   = optional(string, "100Gi")
     access_modes   = optional(list(string), ["ReadWriteOnce"])
     resources = optional(object({
       request = optional(object({
-        cpu = optional(string, "500m")
-        mem = optional(string, "500Mi")
+        cpu = optional(string, "3")
+        mem = optional(string, "4Gi")
       }), {})
       limit = optional(object({
-        cpu = optional(string, "1")
-        mem = optional(string, "1Gi")
+        cpu = optional(string, "4")
+        mem = optional(string, "5Gi")
       }), {})
     }), {})
     ingress = optional(object({
@@ -295,14 +295,31 @@ variable "prometheus" {
       path                   = optional(list(string), ["/"])
       path_type              = optional(string, "Prefix")
     }), {})
-    replicas                  = optional(number, 2)
+    replicas                  = optional(number, 1)
     enable_alertmanager       = optional(bool, true)
     additional_scrape_configs = optional(any, []) # allows to specify additional scrape configs to be added to the prometheus helm chart
     kubelet_metrics = optional(list(string), ["container_cpu_.*", "container_memory_.*", "kube_pod_container_status_.*",
-      "kube_pod_container_resource_*", "container_network_.*", "kube_pod_resource_limit",
+      "kube_pod_container_resource_.*", "container_network_.*", "kube_pod_resource_limit",
       "kube_pod_resource_request", "pod_cpu_usage_seconds_total", "pod_memory_usage_bytes",
-      "kubelet_volume_stats", "volume_operation_total_seconds"]
+      "kubelet_volume_stats.*", "volume_operation_total_seconds.*", "container_fs_.*"]
     ) # allows to specify kubelet metrics to scrape. By default, we scrape the default ones.
+    additional_args = optional(list(object({
+      name  = string
+      value = string
+      })), [
+      {
+        name  = "query.max-concurrency"
+        value = "64"
+      },
+      {
+        name  = "query.timeout"
+        value = "2m"
+      },
+      {
+        name  = "query.max-samples"
+        value = "75000000"
+      }
+    ])
   })
 
   description = "values to be used as prometheus's chart values"
