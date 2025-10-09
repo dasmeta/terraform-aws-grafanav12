@@ -1,8 +1,9 @@
 module "this" {
   source  = "dasmeta/grafana/onpremise"
-  version = "1.26.1"
+  version = "1.26.4"
 
-  application_dashboard = var.application_dashboard
+  application_dashboard          = var.application_dashboard
+  deploy_grafana_stack_dashboard = var.deploy_grafana_stack_dashboard
 
   alerts = var.alerts
 
@@ -39,15 +40,19 @@ module "this" {
   }
 
   prometheus = {
-    enabled             = var.prometheus.enabled
-    retention_days      = var.prometheus.retention_days
-    storage_class       = var.prometheus.storage_class
-    storage_size        = var.prometheus.storage_size
-    access_modes        = var.prometheus.access_modes
-    resources           = var.prometheus.resources
-    replicas            = var.prometheus.replicas
-    enable_alertmanager = var.prometheus.enable_alertmanager
-    ingress             = local.prometheus_ingress
+    enabled                   = var.prometheus.enabled
+    chart_version             = var.prometheus.chart_version
+    retention_days            = var.prometheus.retention_days
+    storage_class             = var.prometheus.storage_class
+    storage_size              = var.prometheus.storage_size
+    access_modes              = var.prometheus.access_modes
+    resources                 = var.prometheus.resources
+    replicas                  = var.prometheus.replicas
+    enable_alertmanager       = var.prometheus.enable_alertmanager
+    ingress                   = local.prometheus_ingress
+    additional_args           = var.prometheus.additional_args
+    additional_scrape_configs = var.prometheus.additional_scrape_configs
+    kubelet_metrics           = var.prometheus.kubelet_metrics
   }
 
 
