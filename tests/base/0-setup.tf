@@ -17,7 +17,7 @@ terraform {
   }
 }
 
-# you can start dev grafana server locally using `docker compose up -d` from `/tests` folder before running the test locally
+# the grafana will be created after eks creation, here we create provider for it which will be used to create resources in grafana
 provider "grafana" {
   url  = "http://${local.grafana_domain_name}"
   auth = "admin:admin"
