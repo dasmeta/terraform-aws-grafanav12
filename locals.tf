@@ -41,7 +41,7 @@ locals {
   }
 
   # Loki configurations
-  loki_s3_bucket_name = length(var.loki.send_logs_s3.bucket_name) > 0 ? var.loki.send_logs_s3.bucket_name : "loki-logs-${var.cluster_name}-${random_string.random.result}"
+  loki_s3_bucket_name = length(var.loki_stack.send_logs_s3.bucket_name) > 0 ? var.loki_stack.send_logs_s3.bucket_name : "loki-logs-${var.cluster_name}-${random_string.random.result}"
   loki_default_s3_configs = {
     type = "s3"
     s3 = {
@@ -54,39 +54,6 @@ locals {
       ruler  = local.loki_s3_bucket_name
       admin  = local.loki_s3_bucket_name
     }
-  }
-
-  loki_configs = {
-    volume_enabled = var.loki.volume_enabled
-    service_account = {
-      enable      = var.loki.service_account.enable
-      name        = var.loki.service_account.name
-      annotations = merge(var.loki.service_account.annotations, { "eks.amazonaws.com/role-arn" : try(module.s3_eks_role.arn, "") })
-    }
-
-    persistence = {
-      enabled       = var.loki.persistence.enabled
-      size          = var.loki.persistence.size
-      storage_class = var.loki.persistence.storage_class
-      access_mode   = var.loki.persistence.access_mode
-    }
-    schema_configs = var.loki.schema_configs
-    storage        = merge(length(var.loki.storage) > 0 ? var.loki.storage : local.loki_default_s3_configs)
-
-    ingress = {
-      enabled     = var.loki.ingress.enabled
-      type        = var.loki.ingress.type
-      public      = var.loki.ingress.public
-      tls_enabled = var.loki.ingress.tls_enabled
-
-      annotations = var.loki.ingress.additional_annotations
-      hosts       = var.loki.ingress.hosts
-      path        = var.loki.ingress.path
-      path_type   = var.loki.ingress.path_type
-    }
-    replicas         = var.loki.replicas
-    retention_period = var.loki.retention_period
-    resources        = var.loki.resources
   }
 
   default_loki_storage = {
@@ -104,20 +71,6 @@ locals {
     }
   }
 
-  # Promtail configurations
-  promtail_configs = {
-    enabled               = var.loki.promtail.enabled
-    log_level             = var.loki.promtail.log_level
-    server_port           = var.loki.promtail.server_port
-    clients               = var.loki.promtail.clients
-    log_format            = var.loki.promtail.log_format
-    extra_scrape_configs  = var.loki.promtail.extra_scrape_configs
-    extra_label_configs   = var.loki.promtail.extra_label_configs
-    extra_pipeline_stages = var.loki.promtail.extra_pipeline_stages
-    ignored_containers    = var.loki.promtail.ignored_containers
-    ignored_namespaces    = var.loki.promtail.ignored_namespaces
-  }
-
   # Prometheus Configurations
   prometheus_ingress = {
     enabled     = var.prometheus.ingress.enabled
@@ -129,9 +82,6 @@ locals {
     hosts       = var.prometheus.ingress.hosts
     path        = var.prometheus.ingress.path
   }
-
-
-
 
   # Grafana Configurations
   cloudwatch_policies = [

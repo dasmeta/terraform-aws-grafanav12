@@ -1,63 +1,46 @@
 module "this" {
   source  = "dasmeta/grafana/onpremise"
-  version = "1.26.5"
+  version = "1.27.1"
 
   application_dashboard          = var.application_dashboard
   deploy_grafana_stack_dashboard = var.deploy_grafana_stack_dashboard
 
   alerts = var.alerts
 
-  grafana = {
-    enabled           = var.grafana.enabled
-    resources         = var.grafana.resources
-    ingress           = local.grafana_ingress
-    database          = var.grafana.database
-    persistence       = var.grafana.persistence
-    redundancy        = var.grafana.redundancy
-    datasources       = local.grafana_datasources
-    trace_log_mapping = var.grafana.trace_log_mapping
-    replicas          = var.grafana.replicas
-    service_account   = local.grafana_service_account
-  }
+  grafana = provider::deepmerge::mergo(var.grafana, {
+    namespace       = coalesce(var.grafana.namespace, var.namespace)
+    ingress         = local.grafana_ingress
+    datasources     = local.grafana_datasources
+    service_account = local.grafana_service_account
+  })
 
-  tempo = {
-    enabled                = var.tempo.enabled
-    enable_service_monitor = var.tempo.enable_service_monitor
-    metrics_generator      = var.tempo.metrics_generator
-    persistence            = var.tempo.persistence
-    service_account        = local.tempo_service_account
+  tempo = provider::deepmerge::mergo(var.tempo, {
+    service_account = local.tempo_service_account
 
     storage = {
       backend               = var.tempo.storage.backend
       backend_configuration = length(var.tempo.storage.backend_configuration) > 0 ? var.tempo.storage.backend_configuration : local.tempo_default_s3_configs
     }
-  }
+    namespace = coalesce(var.tempo.namespace, var.namespace)
+  })
 
-  loki = {
-    enabled  = var.loki.enabled
-    loki     = local.loki_configs
-    promtail = local.promtail_configs
-  }
+  loki_stack = provider::deepmerge::mergo(var.loki_stack, {
+    namespace = coalesce(var.loki_stack.namespace, var.namespace)
 
-  prometheus = {
-    enabled                   = var.prometheus.enabled
-    chart_version             = var.prometheus.chart_version
-    retention_days            = var.prometheus.retention_days
-    storage_class             = var.prometheus.storage_class
-    storage_size              = var.prometheus.storage_size
-    access_modes              = var.prometheus.access_modes
-    resources                 = var.prometheus.resources
-    replicas                  = var.prometheus.replicas
-    enable_alertmanager       = var.prometheus.enable_alertmanager
-    ingress                   = local.prometheus_ingress
-    additional_args           = var.prometheus.additional_args
-    additional_scrape_configs = var.prometheus.additional_scrape_configs
-    kubelet_metrics           = var.prometheus.kubelet_metrics
-  }
+    loki = {
+      serviceAccount = {
+        annotations = provider::deepmerge::mergo({ "eks.amazonaws.com/role-arn" : try(module.s3_eks_role.arn, "") }, var.loki_stack.loki.serviceAccount.annotations)
+      }
+      storage = provider::deepmerge::mergo(local.loki_default_s3_configs, var.loki_stack.loki.storage) # here we prefer custom passed storage configs over the internal generated s3 storage one
+    }
+  })
 
+  prometheus = provider::deepmerge::mergo(var.prometheus, {
+    ingress   = local.prometheus_ingress
+    namespace = coalesce(var.prometheus.namespace, var.namespace)
+  })
 
   grafana_admin_password = var.grafana_admin_password
-
 }
 
 
@@ -98,7 +81,7 @@ module "s3_eks_role" {
       conditions = [{
         type  = "StringEquals"
         key   = "${replace(data.aws_eks_cluster.this.identity[0].oidc[0].issuer, "https://", "")}:sub"
-        value = ["system:serviceaccount:${var.namespace}:${var.loki.service_account.name}", "system:serviceaccount:${var.namespace}:${var.tempo.service_account.name}"]
+        value = ["system:serviceaccount:${var.namespace}:${var.loki_stack.loki.serviceAccount.name}", "system:serviceaccount:${var.namespace}:${var.tempo.service_account.name}"]
       }]
       actions = ["sts:AssumeRoleWithWebIdentity"]
     }
