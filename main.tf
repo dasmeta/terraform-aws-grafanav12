@@ -70,7 +70,7 @@ module "s3_eks_role" {
   source  = "dasmeta/iam/aws//modules/role"
   version = "1.3.0"
 
-  name   = "s3-grafanastack-role"
+  name   = var.name_prefix == "" ? "s3-grafanastack-role" : "${var.name_prefix}-s3-grafanastack-role"
   policy = local.s3_aws_policies
   trust_relationship = [
     {
@@ -92,7 +92,7 @@ module "grafana_cloudwatch_role" {
   source  = "dasmeta/iam/aws//modules/role"
   version = "1.3.0"
 
-  name   = "grafana-cloudwatch-role"
+  name   = var.name_prefix == "" ? "grafana-cloudwatch-role" : "${var.name_prefix}-grafana-cloudwatch-role"
   policy = local.cloudwatch_policies
   trust_relationship = [
     {
