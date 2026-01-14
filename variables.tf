@@ -19,6 +19,12 @@ variable "deployment_name" {
   default = "Main Dashboard"
 }
 
+variable "name_prefix" {
+  type = string
+  default = ""
+  description = "Name Prefix for policy,role ..."
+}
+
 variable "application_dashboard" {
   type = list(object({
     name        = string
