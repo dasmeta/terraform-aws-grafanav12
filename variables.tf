@@ -20,8 +20,8 @@ variable "deployment_name" {
 }
 
 variable "name_prefix" {
-  type = string
-  default = ""
+  type        = string
+  default     = ""
   description = "Name Prefix for policy,role ..."
 }
 
