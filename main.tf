@@ -1,9 +1,10 @@
 module "this" {
   source  = "dasmeta/grafana/onpremise"
-  version = "1.27.5"
+  version = "1.27.7"
 
   application_dashboard          = var.application_dashboard
   deploy_grafana_stack_dashboard = var.deploy_grafana_stack_dashboard
+  dashboards_json_files          = var.dashboards_json_files
 
   alerts = var.alerts
 
@@ -29,7 +30,7 @@ module "this" {
 
     loki = {
       serviceAccount = {
-        annotations = provider::deepmerge::mergo({ "eks.amazonaws.com/role-arn" : try(module.s3_eks_role.arn, "") }, var.loki_stack.loki.serviceAccount.annotations)
+        annotations = provider::deepmerge::mergo({ "eks.amazonaws.com/role-arn" : try(module.s3_eks_role[0].arn, "") }, var.loki_stack.loki.serviceAccount.annotations)
       }
       storage = provider::deepmerge::mergo(local.loki_default_s3_configs, var.loki_stack.loki.storage) # here we prefer custom passed storage configs over the internal generated s3 storage one
     }
@@ -45,6 +46,8 @@ module "this" {
 
 
 module "loki_bucket" {
+  count = var.loki_stack.enabled ? 1 : 0
+
   source  = "dasmeta/s3/aws"
   version = "1.3.2"
 
@@ -56,6 +59,8 @@ module "loki_bucket" {
 }
 
 module "tempo_bucket" {
+  count = var.tempo.enabled ? 1 : 0
+
   source  = "dasmeta/s3/aws"
   version = "1.3.2"
 
@@ -67,6 +72,8 @@ module "tempo_bucket" {
 }
 
 module "s3_eks_role" {
+  count = var.loki_stack.enabled || var.tempo.enabled ? 1 : 0
+
   source  = "dasmeta/iam/aws//modules/role"
   version = "1.3.0"
 
@@ -79,9 +86,12 @@ module "s3_eks_role" {
         identifiers = [local.eks_oidc_provider_arn]
       }
       conditions = [{
-        type  = "StringEquals"
-        key   = "${replace(data.aws_eks_cluster.this.identity[0].oidc[0].issuer, "https://", "")}:sub"
-        value = ["system:serviceaccount:${var.namespace}:${var.loki_stack.loki.serviceAccount.name}", "system:serviceaccount:${var.namespace}:${var.tempo.service_account.name}"]
+        type = "StringEquals"
+        key  = "${replace(data.aws_eks_cluster.this.identity[0].oidc[0].issuer, "https://", "")}:sub"
+        value = concat(
+          var.loki_stack.enabled ? ["system:serviceaccount:${var.namespace}:${var.loki_stack.loki.serviceAccount.name}"] : [],
+          var.tempo.enabled ? ["system:serviceaccount:${var.namespace}:${var.tempo.service_account.name}"] : []
+        )
       }]
       actions = ["sts:AssumeRoleWithWebIdentity"]
     }
@@ -89,6 +99,8 @@ module "s3_eks_role" {
 }
 
 module "grafana_cloudwatch_role" {
+  count = var.grafana.enabled ? 1 : 0
+
   source  = "dasmeta/iam/aws//modules/role"
   version = "1.3.0"
 
