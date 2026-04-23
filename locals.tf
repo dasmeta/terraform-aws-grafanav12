@@ -4,8 +4,11 @@ locals {
   eks_oidc_provider_arn = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:oidc-provider/${replace(data.aws_eks_cluster.this.identity[0].oidc[0].issuer, "https://", "")}"
   s3_aws_policies = [
     {
-      actions   = ["s3:ListBucket"],
-      resources = ["arn:aws:s3:::${local.loki_s3_bucket_name}", "arn:aws:s3:::${local.tempo_s3_bucket_name}"]
+      actions = ["s3:ListBucket"],
+      resources = concat(
+        var.loki_stack.enabled ? ["arn:aws:s3:::${local.loki_s3_bucket_name}"] : [],
+        var.tempo.enabled ? ["arn:aws:s3:::${local.tempo_s3_bucket_name}"] : []
+      )
     },
     {
       actions = [
@@ -16,7 +19,10 @@ locals {
         "s3:GetObjectTagging",
         "s3:PutObjectTagging"
       ],
-      resources = ["arn:aws:s3:::${local.loki_s3_bucket_name}/*", "arn:aws:s3:::${local.tempo_s3_bucket_name}/*"]
+      resources = concat(
+        var.loki_stack.enabled ? ["arn:aws:s3:::${local.loki_s3_bucket_name}/*"] : [],
+        var.tempo.enabled ? ["arn:aws:s3:::${local.tempo_s3_bucket_name}/*"] : []
+      )
     }
   ]
 
@@ -35,7 +41,7 @@ locals {
     name = var.tempo.service_account.name
     annotations = merge(var.grafana.service_account.annotations,
       {
-        "eks.amazonaws.com/role-arn" : try(module.s3_eks_role.arn, "")
+        "eks.amazonaws.com/role-arn" : try(module.s3_eks_role[0].arn, "")
       }
     )
   }
@@ -126,7 +132,7 @@ locals {
     enable = var.grafana.service_account.enable
     annotations = merge(var.grafana.service_account.annotations,
       {
-        "eks.amazonaws.com/role-arn" : try(module.grafana_cloudwatch_role.arn, "")
+        "eks.amazonaws.com/role-arn" : try(module.grafana_cloudwatch_role[0].arn, "")
       }
     )
   }
