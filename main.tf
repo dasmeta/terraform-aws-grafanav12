@@ -1,6 +1,5 @@
 module "this" {
-  source  = "dasmeta/grafana/onpremise"
-  version = "1.27.5"
+  source = "../terraform-onpremise-grafana"
 
   application_dashboard          = var.application_dashboard
   deploy_grafana_stack_dashboard = var.deploy_grafana_stack_dashboard
@@ -39,6 +38,8 @@ module "this" {
     ingress   = local.prometheus_ingress
     namespace = coalesce(var.prometheus.namespace, var.namespace)
   })
+
+  victoria_metrics = var.victoria_metrics
 
   grafana_admin_password = var.grafana_admin_password
 }
