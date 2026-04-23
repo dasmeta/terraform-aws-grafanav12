@@ -1,5 +1,8 @@
 module "this" {
-  source = "../terraform-onpremise-grafana"
+  # source  = "dasmeta/grafana/onpremise"
+  # version = "1.27.5"
+
+  source = "git::https://github.com/dasmeta/terraform-onpremise-grafana.git?ref=DMVP-9861"
 
   application_dashboard          = var.application_dashboard
   deploy_grafana_stack_dashboard = var.deploy_grafana_stack_dashboard
