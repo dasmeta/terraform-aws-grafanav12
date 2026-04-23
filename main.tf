@@ -1,6 +1,6 @@
 module "this" {
   # source  = "dasmeta/grafana/onpremise"
-  # version = "1.27.5"
+  # version = "1.27.9"
 
   source = "git::https://github.com/dasmeta/terraform-onpremise-grafana.git?ref=DMVP-9861"
 
