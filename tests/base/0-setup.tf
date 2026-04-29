@@ -70,7 +70,7 @@ locals {
 # prepare eks setup for grafana-stack components
 module "eks" {
   source  = "dasmeta/eks/aws"
-  version = "2.24.2"
+  version = "2.25.5"
 
   cluster_name = local.eks_cluster_name
 
@@ -83,11 +83,11 @@ module "eks" {
 
   node_groups = {
     default = {
-      desired_size   = 1
-      max_size       = 1
-      min_size       = 1
+      min_size       = 2 # have min/desired/max 2 replicas to get karpenter/coredns/alb-controller and other system components running on the nodes
+      desired_size   = 2
+      max_size       = 2
       capacity_type  = "SPOT"
-      instance_types = ["t3.xlarge"]
+      instance_types = ["t3.small", "t3a.small"]
     }
   }
 

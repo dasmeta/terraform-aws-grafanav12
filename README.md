@@ -12,6 +12,34 @@ At this moment we support managing
 - Grafana Contact Points with `contact-points` submodule
 - Grafana Notification Policies with `notifications` submodule
 
+Environment-label based routing can be configured via existing `alerts.notifications.policies[*].matchers` rules, with a fallback `contact_point` for unmatched environments.
+This module now pins `dasmeta/grafana/onpremise` to `1.27.10`, so AWS wrapper users get the same same-cluster multi-environment/namespace routing behavior available in the upstream module.
+
+## Dedicated multi-environment routing test
+
+Use `tests/multi-environment-alert-routing` for focused validation of matcher-based routing without modifying `tests/base`.
+
+```bash
+cd tests/multi-environment-alert-routing
+terraform init
+terraform validate
+```
+
+Routing example (AWS wrapper context):
+
+```hcl
+alerts = {
+  notifications = {
+    contact_point = "ops-fallback"
+    policies = [
+      { contact_point = "Slack-dev", matchers = [{ label = "env", match = "=", value = "dev" }] },
+      { contact_point = "Slack-stage", matchers = [{ label = "env", match = "=", value = "stage" }] },
+      { contact_point = "Slack-prod", matchers = [{ label = "env", match = "=", value = "prod" }] }
+    ]
+  }
+}
+```
+
 ## Known issues
 Grafana provider sometimes has issues with endpoints behind WAFs: https://github.com/grafana/terraform-provider-grafana/issues/1851
 
@@ -147,8 +175,8 @@ module "this" {
 
 | Name | Version |
 |------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | ~> 5.0 |
-| <a name="provider_random"></a> [random](#provider\_random) | n/a |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | 5.100.0 |
+| <a name="provider_random"></a> [random](#provider\_random) | 3.8.1 |
 
 ## Modules
 
@@ -158,7 +186,7 @@ module "this" {
 | <a name="module_loki_bucket"></a> [loki\_bucket](#module\_loki\_bucket) | dasmeta/s3/aws | 1.3.2 |
 | <a name="module_s3_eks_role"></a> [s3\_eks\_role](#module\_s3\_eks\_role) | dasmeta/iam/aws//modules/role | 1.3.0 |
 | <a name="module_tempo_bucket"></a> [tempo\_bucket](#module\_tempo\_bucket) | dasmeta/s3/aws | 1.3.2 |
-| <a name="module_this"></a> [this](#module\_this) | dasmeta/grafana/onpremise | 1.27.7 |
+| <a name="module_this"></a> [this](#module\_this) | dasmeta/grafana/onpremise | 1.27.10 |
 
 ## Resources
 
@@ -186,6 +214,7 @@ module "this" {
 | <a name="input_namespace"></a> [namespace](#input\_namespace) | n/a | `string` | `"monitoring"` | no |
 | <a name="input_prometheus"></a> [prometheus](#input\_prometheus) | values to be used as prometheus's chart values | <pre>object({<br/>    enabled          = optional(bool, true)<br/>    namespace        = optional(string, null) # the namespace fallbacks to var.namespace if not specified<br/>    create_namespace = optional(bool, true)   # whether create namespace if not exist<br/>    chart_version    = optional(string, "75.8.0")<br/>    retention_days   = optional(string, "30d")<br/>    storage_class    = optional(string, "gp2") # TODO: consider switching to gp3 or ever better leave empty to use default storage class<br/>    storage_size     = optional(string, "100Gi")<br/>    access_modes     = optional(list(string), ["ReadWriteOnce"])<br/>    resources = optional(object({<br/>      requests = optional(object({<br/>        cpu    = optional(string, "3")<br/>        memory = optional(string, "4Gi")<br/>      }), {})<br/>      limits = optional(object({<br/>        cpu    = optional(string, "4")<br/>        memory = optional(string, "5Gi")<br/>      }), {})<br/>    }), {})<br/>    ingress = optional(object({<br/>      enabled     = optional(bool, false)<br/>      type        = optional(string, "alb")<br/>      public      = optional(bool, true)<br/>      tls_enabled = optional(bool, true)<br/><br/>      additional_annotations = optional(map(string), {})<br/>      hosts                  = optional(list(string), ["prometheus.example.com"])<br/>      path                   = optional(list(string), ["/"])<br/>      path_type              = optional(string, "Prefix")<br/>    }), {})<br/>    replicas                  = optional(number, 1)<br/>    enable_alertmanager       = optional(bool, true)<br/>    additional_scrape_configs = optional(any, []) # allows to specify additional scrape configs to be added to the prometheus helm chart<br/>    kubelet_metrics = optional(list(string), ["container_cpu_.*", "container_memory_.*", "kube_pod_container_status_.*",<br/>      "kube_pod_container_resource_.*", "container_network_.*", "kube_pod_resource_limit",<br/>      "kube_pod_resource_request", "pod_cpu_usage_seconds_total", "pod_memory_usage_bytes",<br/>      "kubelet_volume_stats.*", "volume_operation_total_seconds.*", "container_fs_.*"]<br/>    ) # allows to specify kubelet metrics to scrape. By default, we scrape the default ones.<br/>    additional_args = optional(list(object({<br/>      name  = string<br/>      value = string<br/>      })), [<br/>      {<br/>        name  = "query.max-concurrency"<br/>        value = "64"<br/>      },<br/>      {<br/>        name  = "query.timeout"<br/>        value = "2m"<br/>      },<br/>      {<br/>        name  = "query.max-samples"<br/>        value = "75000000"<br/>      }<br/>    ])<br/>    extra_configs = optional(any, {}) # allows to pass extra/custom configs to prometheus helm chart, this configs will deep-merged with all generated internal configs and can override the default set ones. All available options can be found in for the specified chart version here: https://artifacthub.io/packages/helm/prometheus-community/prometheus?modal=values<br/>  })</pre> | `{}` | no |
 | <a name="input_tempo"></a> [tempo](#input\_tempo) | confgis for tempo deployment | <pre>object({<br/>    enabled                = optional(bool, false)<br/>    namespace              = optional(string, null) # the namespace fallbacks to var.namespace if not specified<br/>    create_namespace       = optional(bool, true)   # whether create namespace if not exist<br/>    chart_version          = optional(string, "1.23.3")<br/>    bucket_name            = optional(string, "")<br/>    enable_service_monitor = optional(bool, true)<br/>    storage = optional(object({<br/>      backend               = optional(string, "s3")<br/>      backend_configuration = optional(map(any), {})<br/>    }), {})<br/>    service_account = optional(object({<br/>      name        = optional(string, "tempo")<br/>      enable      = optional(bool, true)<br/>      annotations = optional(map(string), {})<br/>    }), {})<br/>    metrics_generator = optional(object({<br/>      enabled    = optional(bool, true)<br/>      remote_url = optional(string, "http://prometheus-kube-prometheus-prometheus.monitoring.svc.cluster.local:9090/api/v1/write")<br/>    }))<br/><br/>    persistence = optional(object({<br/>      enabled       = optional(bool, true)<br/>      size          = optional(string, "20Gi")<br/>      storage_class = optional(string, "gp2") # TODO: consider switching to gp3 or ever better leave empty to use default storage class<br/>    }), {})<br/>    extra_configs = optional(any, {}) # allows to pass extra/custom configs to tempo helm chart, this configs will deep-merged with all generated internal configs and can override the default set ones. All available options can be found in for the specified chart version here: https://artifacthub.io/packages/helm/grafana/tempo?modal=values<br/>  })</pre> | `{}` | no |
+| <a name="input_victoria_metrics"></a> [victoria\_metrics](#input\_victoria\_metrics) | Values to deploy redundant VictoriaMetrics and wire Prometheus remote\_write | <pre>object({<br/>    enabled          = optional(bool, false)<br/>    namespace        = optional(string, null) # the namespace fallbacks to var.namespace if not specified<br/>    create_namespace = optional(bool, true)   # whether create namespace if not exist<br/>    chart_version    = optional(string, "0.31.0")<br/>    release_name     = optional(string, "victoria-metrics")<br/>    retention_period = optional(string, "30d")<br/>    vmstorage = optional(object({<br/>      replica_count = optional(number, 3)<br/>      storage_class = optional(string, "")<br/>      storage_size  = optional(string, "100Gi")<br/>      access_modes  = optional(list(string), ["ReadWriteOnce"])<br/>    }), {})<br/>    vminsert = optional(object({<br/>      replica_count = optional(number, 2)<br/>    }), {})<br/>    vmselect = optional(object({<br/>      replica_count = optional(number, 2)<br/>    }), {})<br/>    extra_configs = optional(any, {})<br/>  })</pre> | `{}` | no |
 
 ## Outputs
 

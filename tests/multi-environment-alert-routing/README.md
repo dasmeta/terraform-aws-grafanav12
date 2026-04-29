@@ -1,5 +1,19 @@
-# base
+# multi-environment-alert-routing
 
+Dedicated AWS test scenario for same-cluster namespace/environment alert routing using existing `alerts.notifications.policies[*].matchers`.
+
+This scenario stays separate from `tests/base` to keep baseline coverage unchanged.
+
+It validates:
+- Environment-specific routing for `env=dev|stage|prod`
+- Fallback routing to `ops-fallback` when `env` label does not match (or is missing)
+
+Run locally:
+
+```bash
+terraform init
+terraform validate
+```
 <!-- BEGINNING OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
 ## Requirements
 
@@ -30,13 +44,14 @@
 |------|------|
 | [helm_release.http_echo](https://registry.terraform.io/providers/hashicorp/helm/latest/docs/resources/release) | resource |
 | [aws_availability_zones.available](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/availability_zones) | data source |
-| [aws_lb.this](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/lb) | data source |
 | [aws_subnets.subnets](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/subnets) | data source |
 | [aws_vpcs.ids](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/vpcs) | data source |
 
 ## Inputs
 
-No inputs.
+| Name | Description | Type | Default | Required |
+|------|-------------|------|---------|:--------:|
+| <a name="input_slack_webhook_url"></a> [slack\_webhook\_url](#input\_slack\_webhook\_url) | Slack webhook URL used by routing contact points in this scenario | `string` | `"https://hooks.slack.com/services/xxxxx/yyyyyy/zzzzzzzzzzzz"` | no |
 
 ## Outputs
 
