@@ -134,7 +134,7 @@ module "this" {
   victoria_metrics = {
     enabled = true
   }
-  
+
   grafana_admin_password = "admin"
 
   ## can be used to create dashboards based on ready json configuration files

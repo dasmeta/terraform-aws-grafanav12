@@ -21,7 +21,7 @@
 
 | Name | Source | Version |
 |------|--------|---------|
-| <a name="module_eks"></a> [eks](#module\_eks) | dasmeta/eks/aws | 2.24.2 |
+| <a name="module_eks"></a> [eks](#module\_eks) | dasmeta/eks/aws | 2.25.5 |
 | <a name="module_this"></a> [this](#module\_this) | ../.. | n/a |
 
 ## Resources

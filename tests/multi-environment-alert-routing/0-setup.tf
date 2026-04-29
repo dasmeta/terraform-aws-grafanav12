@@ -17,7 +17,12 @@ terraform {
   }
 }
 
-# the grafana will be created after eks creation, here we create provider for it which will be used to create resources in grafana
+variable "slack_webhook_url" {
+  type        = string
+  description = "Slack webhook URL used by routing contact points in this scenario"
+  default     = "https://hooks.slack.com/services/xxxxx/yyyyyy/zzzzzzzzzzzz"
+}
+
 provider "grafana" {
   url  = "http://${local.grafana_domain_name}"
   auth = "admin:admin"
@@ -30,6 +35,7 @@ provider "helm" {
     token                  = module.eks.cluster_token
   }
 }
+
 provider "kubernetes" {
   host                   = module.eks.cluster_host
   cluster_ca_certificate = module.eks.cluster_certificate
@@ -40,7 +46,6 @@ provider "aws" {
   region = local.region
 }
 
-# Prepare for test
 data "aws_availability_zones" "available" {}
 data "aws_vpcs" "ids" {
   tags = {
@@ -57,8 +62,8 @@ data "aws_subnets" "subnets" {
 
 locals {
   region              = "eu-central-1"
-  eks_cluster_name    = "eks-for-grafana-stack-test"
-  grafana_domain_name = "grafana-stack-test.devops.dasmeta.com"
+  eks_cluster_name    = "eks-for-grafana-env-routing-test"
+  grafana_domain_name = "grafana-env-routing.devops.dasmeta.com"
   app_namespaces      = ["dev", "stage", "prod"]
   disabled = {
     enabled = false
@@ -67,7 +72,7 @@ locals {
     enabled = true
   }
 }
-# prepare eks setup for grafana-stack components
+
 module "eks" {
   source  = "dasmeta/eks/aws"
   version = "2.25.5"
@@ -102,14 +107,12 @@ module "eks" {
   linkerd                         = local.disabled
   kyverno                         = local.disabled
 
-  # enabled components
   enable_ebs_driver            = true
   karpenter                    = local.enabled
   alb_load_balancer_controller = local.enabled
   external_dns                 = local.enabled
 }
 
-# we deploy same app in two different namespaces: prod and dev to check $namespace variable dashboard
 resource "helm_release" "http_echo" {
   for_each = toset(local.app_namespaces)
 
@@ -136,10 +139,4 @@ resource "helm_release" "http_echo" {
   ]
 
   depends_on = [module.eks]
-}
-
-data "aws_lb" "this" {
-  name = local.eks_cluster_name
-
-  depends_on = [helm_release.http_echo]
 }
