@@ -55,9 +55,10 @@ module "loki_bucket" {
 
   name = local.loki_s3_bucket_name
 
-  restrict_public_buckets = true
-  block_public_acls       = true
-  block_public_policy     = true
+  restrict_public_buckets = var.loki_stack.send_logs_s3.restrict_public_buckets
+  block_public_acls       = var.loki_stack.send_logs_s3.block_public_acls
+  block_public_policy     = var.loki_stack.send_logs_s3.block_public_policy
+  ignore_public_acls      = var.loki_stack.send_logs_s3.ignore_public_acls
 }
 
 module "tempo_bucket" {
@@ -68,9 +69,10 @@ module "tempo_bucket" {
 
   name = local.tempo_s3_bucket_name
 
-  restrict_public_buckets = true
-  block_public_acls       = true
-  block_public_policy     = true
+  restrict_public_buckets = var.tempo.restrict_public_buckets
+  block_public_acls       = var.tempo.block_public_acls
+  block_public_policy     = var.tempo.block_public_policy
+  ignore_public_acls      = var.tempo.ignore_public_acls
 }
 
 module "s3_eks_role" {
