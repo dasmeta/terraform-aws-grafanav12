@@ -403,12 +403,16 @@ variable "victoria_metrics" {
 }
 variable "tempo" {
   type = object({
-    enabled                = optional(bool, false)
-    namespace              = optional(string, null) # the namespace fallbacks to var.namespace if not specified
-    create_namespace       = optional(bool, true)   # whether create namespace if not exist
-    chart_version          = optional(string, "1.23.3")
-    bucket_name            = optional(string, "")
-    enable_service_monitor = optional(bool, true)
+    enabled                 = optional(bool, false)
+    namespace               = optional(string, null) # the namespace fallbacks to var.namespace if not specified
+    create_namespace        = optional(bool, true)   # whether create namespace if not exist
+    chart_version           = optional(string, "1.23.3")
+    bucket_name             = optional(string, "")
+    restrict_public_buckets = optional(bool, true)
+    block_public_acls       = optional(bool, true)
+    block_public_policy     = optional(bool, true)
+    ignore_public_acls      = optional(bool, true)
+    enable_service_monitor  = optional(bool, true)
     storage = optional(object({
       backend               = optional(string, "s3")
       backend_configuration = optional(map(any), {})
@@ -545,9 +549,13 @@ variable "loki_stack" {
     }), {})
 
     send_logs_s3 = optional(object({ # aws s3 bucket configs which will be used as storage for loki
-      enable       = optional(bool, true)
-      bucket_name  = optional(string, "") # if not passed loki-logs-${var.cluster_name}-${random_string.random.result} format will be used for name
-      aws_role_arn = optional(string, "")
+      enable                  = optional(bool, true)
+      bucket_name             = optional(string, "") # if not passed loki-logs-${var.cluster_name}-${random_string.random.result} format will be used for name
+      aws_role_arn            = optional(string, "")
+      restrict_public_buckets = optional(bool, true)
+      block_public_acls       = optional(bool, true)
+      block_public_policy     = optional(bool, true)
+      ignore_public_acls      = optional(bool, true)
     }), {})
     # TODO: the promtail deprecated, consider to have this replaced with for example fluent/fluent-bit
     promtail = optional(object({
