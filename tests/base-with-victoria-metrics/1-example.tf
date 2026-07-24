@@ -41,45 +41,58 @@ module "this" {
     ]
   }]
 
-  # can be used to create custom/additional alerts
-  # alerts = {
-  #   rules = [
-  #     {
-  #       "datasource" : "prometheus",
-  #       "equation" : "gt",
-  #       "expr" : "avg(increase(nginx_ingress_controller_request_duration_seconds_sum[3m])) / 10",
-  #       "folder_name" : "Nginx Alerts",
-  #       "function" : "mean",
-  #       "name" : "Latency P1",
-  #       "labels" : {
-  #         "priority" : "P1",
-  #       }
-  #       "threshold" : 3
-
-  #       # we override no-data/exec-error state for this example/test only, it is supposed this values will not be set here so they get their default ones
-  #       "no_data_state" : "OK"
-  #       "exec_err_state" : "OK"
-  #       # "exec_err_state" : "Alerting" # uncomment to trigger new alert
-  #     },
-  #     {
-  #       "datasource" : "prometheus",
-  #       "equation" : "gt",
-  #       "expr" : "avg(increase(nginx_ingress_controller_request_duration_seconds_sum[3m])) / 10",
-  #       "folder_name" : "Nginx Alerts",
-  #       "function" : "mean",
-  #       "name" : "Latency P2",
-  #       "labels" : {
-  #         "priority" : "P2",
-  #       }
-  #       "threshold" : 3
-
-  #       # we override no-data/exec-error state for this example/test only, it is supposed this values will not be set here so they get their default ones
-  #       "no_data_state" : "OK"
-  #       "exec_err_state" : "OK"
-  #       # "exec_err_state" : "Alerting" # uncomment to trigger new alert
-  #     }
-  #   ]
-  # }
+  alerts = {
+    disk_capacity = {
+      datasource      = "victoriametrics"
+      datasource_type = "prometheus"
+      namespace       = "prod|stage"
+      threshold       = 85
+      pending_period  = "10m"
+      labels = {
+        priority = "P2"
+      }
+      annotations = {
+        summary = "PVC disk usage is above threshold"
+      }
+    }
+    rules = [
+      {
+        datasource      = "victoriametrics"
+        datasource_type = "prometheus"
+        equation        = "gt"
+        expr            = "sum(increase(kube_pod_container_status_restarts_total[5m]))"
+        folder_name     = "Workload Alerts"
+        function        = "mean"
+        interval_ms     = 1000
+        name            = "Pod Restart Burst"
+        pending_period  = "5m"
+        labels = {
+          priority = "P2"
+        }
+        threshold      = 5
+        no_data_state  = "OK"
+        exec_err_state = "OK"
+      },
+      {
+        datasource      = "loki"
+        datasource_type = "loki"
+        equation        = "gt"
+        expr            = "count_over_time({namespace=\"teamplus\", pod=~\"teamplus-main-scheduler.*\"} |= \"Signing-key ring unhealthy\" [30m])"
+        folder_name     = "Log Alerts"
+        function        = "last"
+        interval_ms     = 1000
+        name            = "Signing-key ring unhealthy"
+        pending_period  = "5m"
+        condition       = "$B > 0"
+        labels = {
+          priority = "P2"
+        }
+        threshold      = 0
+        no_data_state  = "OK"
+        exec_err_state = "OK"
+      }
+    ]
+  }
 
   grafana = {
     resources = {
