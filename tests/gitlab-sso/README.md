@@ -114,7 +114,7 @@ The `role_attribute_path` uses JSONPath expressions to extract role information 
 ## Requirements
 
 | Name | Version |
-|------|---------|
+| ---- | ------- |
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | ~> 1.3 |
 | <a name="requirement_aws"></a> [aws](#requirement\_aws) | ~> 5.0 |
 | <a name="requirement_grafana"></a> [grafana](#requirement\_grafana) | ~> 4.0 |
@@ -124,20 +124,20 @@ The `role_attribute_path` uses JSONPath expressions to extract role information 
 ## Providers
 
 | Name | Version |
-|------|---------|
+| ---- | ------- |
 | <a name="provider_aws"></a> [aws](#provider\_aws) | ~> 5.0 |
 
 ## Modules
 
 | Name | Source | Version |
-|------|--------|---------|
+| ---- | ------ | ------- |
 | <a name="module_eks"></a> [eks](#module\_eks) | dasmeta/eks/aws | 2.25.5 |
 | <a name="module_this"></a> [this](#module\_this) | ../.. | n/a |
 
 ## Resources
 
 | Name | Type |
-|------|------|
+| ---- | ---- |
 | [aws_availability_zones.available](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/availability_zones) | data source |
 | [aws_subnets.subnets](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/subnets) | data source |
 | [aws_vpcs.ids](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/vpcs) | data source |
@@ -145,7 +145,7 @@ The `role_attribute_path` uses JSONPath expressions to extract role information 
 ## Inputs
 
 | Name | Description | Type | Default | Required |
-|------|-------------|------|---------|:--------:|
+| ---- | ----------- | ---- | ------- | :------: |
 | <a name="input_gitlab_client_id"></a> [gitlab\_client\_id](#input\_gitlab\_client\_id) | GitLab OAuth application client ID | `string` | n/a | yes |
 | <a name="input_gitlab_client_secret"></a> [gitlab\_client\_secret](#input\_gitlab\_client\_secret) | GitLab OAuth application client secret | `string` | n/a | yes |
 | <a name="input_grafana_admin_password"></a> [grafana\_admin\_password](#input\_grafana\_admin\_password) | Grafana admin password | `string` | `"admin"` | no |
