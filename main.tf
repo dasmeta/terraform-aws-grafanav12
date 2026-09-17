@@ -1,6 +1,6 @@
 module "this" {
   source  = "dasmeta/grafana/onpremise"
-  version = "1.28.0"
+  version = "1.28.5"
 
   application_dashboard          = var.application_dashboard
   deploy_grafana_stack_dashboard = var.deploy_grafana_stack_dashboard
@@ -40,6 +40,8 @@ module "this" {
     ingress   = local.prometheus_ingress
     namespace = coalesce(var.prometheus.namespace, var.namespace)
   })
+
+  metrics_collector = var.metrics_collector
 
   victoria_metrics = var.victoria_metrics
 
