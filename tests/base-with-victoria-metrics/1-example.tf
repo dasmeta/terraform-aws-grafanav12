@@ -131,10 +131,23 @@ module "this" {
     }
   }
 
+  metrics_collector = "victoria_metrics"
+
   victoria_metrics = {
     enabled = true
+    operator = {
+      enabled       = true
+      chart_version = "0.67.2"
+      release_name  = "victoria-metrics-operator"
+      extra_configs = {}
+    }
+    agent = {
+      name                 = "victoria-metrics-agent"
+      replica_count        = 1
+      extra_scrape_configs = []
+      extra_configs        = {}
+    }
   }
-
   grafana_admin_password = "admin"
 
   ## can be used to create dashboards based on ready json configuration files

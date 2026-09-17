@@ -14,6 +14,17 @@ variable "namespace" {
   default = "monitoring"
 }
 
+variable "metrics_collector" {
+  type        = string
+  default     = "prometheus"
+  description = "Active metrics scraper forwarded to dasmeta/grafana/onpremise. Supported values are prometheus and victoria_metrics."
+
+  validation {
+    condition     = contains(["prometheus", "victoria_metrics"], var.metrics_collector)
+    error_message = "metrics_collector must be either \"prometheus\" or \"victoria_metrics\"."
+  }
+}
+
 variable "deployment_name" {
   type    = string
   default = "Main Dashboard"
@@ -396,10 +407,44 @@ variable "victoria_metrics" {
     vmselect = optional(object({
       replica_count = optional(number, 2)
     }), {})
+    operator = optional(object({
+      enabled       = optional(bool, false)
+      chart_version = optional(string, "0.67.2")
+      release_name  = optional(string, "victoria-metrics-operator")
+      extra_configs = optional(any, {})
+    }), {})
+    agent = optional(object({
+      name                 = optional(string, "victoria-metrics-agent")
+      replica_count        = optional(number, 1)
+      extra_scrape_configs = optional(any, [])
+      extra_configs        = optional(any, {})
+    }), {})
     extra_configs = optional(any, {})
   })
-  description = "Values to deploy redundant VictoriaMetrics and wire Prometheus remote_write"
+  description = "Values for the VictoriaMetrics cluster, Operator, and selected VMAgent collector."
   default     = {}
+
+  validation {
+    condition = (
+      length(var.victoria_metrics.agent.name) <= 253 &&
+      alltrue([
+        for label in split(".", var.victoria_metrics.agent.name) :
+        length(label) >= 1 &&
+        length(label) <= 63 &&
+        can(regex("^[a-z0-9]([-a-z0-9]*[a-z0-9])?$", label))
+      ])
+    )
+    error_message = "victoria_metrics.agent.name must be a valid Kubernetes DNS subdomain name."
+  }
+
+  validation {
+    condition = (
+      var.victoria_metrics.agent.replica_count >= 1 &&
+      floor(var.victoria_metrics.agent.replica_count) ==
+      var.victoria_metrics.agent.replica_count
+    )
+    error_message = "victoria_metrics.agent.replica_count must be a positive integer."
+  }
 }
 variable "tempo" {
   type = object({

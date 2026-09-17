@@ -1,5 +1,31 @@
 # base
 
+This example installs both backends and selects the Operator-managed VMAgent
+with `metrics_collector = "victoria_metrics"`. It intentionally uses the same
+`prometheus` and `victoria_metrics` objects as `tests/base`; only the selector
+differs.
+
+Local contract and validation commands:
+
+```sh
+cd /Users/vazgen/work/Dasmeta/modules/terraform-aws-grafanav12
+terraform init -backend=false -lockfile=readonly
+printf '%s\n' '[var.victoria_metrics.operator.chart_version, var.victoria_metrics.operator.release_name, var.victoria_metrics.agent.name, tostring(var.victoria_metrics.agent.replica_count)]' | terraform console -var='grafana_admin_password=wrapper-contract-non-secret' -var-file=tests/metrics-collector-selection/contract.tfvars
+terraform validate
+
+cd tests/base
+terraform init -backend=false -lockfile=readonly
+terraform validate
+
+cd ../base-with-victoria-metrics
+terraform init -backend=false -lockfile=readonly
+terraform validate
+```
+
+These checks use the current local sibling source and do not apply resources.
+Before a registry-based release, replace it with the real published
+selector-enabled base-module version and repeat all checks.
+
 <!-- BEGINNING OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
 ## Requirements
 
@@ -14,8 +40,8 @@
 
 | Name | Version |
 |------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | ~> 5.0 |
-| <a name="provider_helm"></a> [helm](#provider\_helm) | ~> 2.17 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | 5.100.0 |
+| <a name="provider_helm"></a> [helm](#provider\_helm) | 2.17.0 |
 
 ## Modules
 
