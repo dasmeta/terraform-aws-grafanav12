@@ -41,6 +41,8 @@ module "this" {
     namespace = coalesce(var.prometheus.namespace, var.namespace)
   })
 
+  metrics_collector = var.metrics_collector
+
   victoria_metrics = var.victoria_metrics
 
   grafana_admin_password = var.grafana_admin_password
