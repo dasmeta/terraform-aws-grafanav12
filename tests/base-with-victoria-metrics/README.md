@@ -40,8 +40,8 @@ selector-enabled base-module version and repeat all checks.
 
 | Name | Version |
 |------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | 5.100.0 |
-| <a name="provider_helm"></a> [helm](#provider\_helm) | 2.17.0 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | ~> 5.0 |
+| <a name="provider_helm"></a> [helm](#provider\_helm) | ~> 2.17 |
 
 ## Modules
 
