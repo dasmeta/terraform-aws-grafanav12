@@ -277,7 +277,7 @@ module "this" {
 | Name | Version |
 |------|---------|
 | <a name="provider_aws"></a> [aws](#provider\_aws) | 5.100.0 |
-| <a name="provider_random"></a> [random](#provider\_random) | 3.9.0 |
+| <a name="provider_random"></a> [random](#provider\_random) | 3.9.1 |
 
 ## Modules
 
@@ -287,7 +287,7 @@ module "this" {
 | <a name="module_loki_bucket"></a> [loki\_bucket](#module\_loki\_bucket) | dasmeta/s3/aws | 1.3.2 |
 | <a name="module_s3_eks_role"></a> [s3\_eks\_role](#module\_s3\_eks\_role) | dasmeta/iam/aws//modules/role | 1.3.0 |
 | <a name="module_tempo_bucket"></a> [tempo\_bucket](#module\_tempo\_bucket) | dasmeta/s3/aws | 1.3.2 |
-| <a name="module_this"></a> [this](#module\_this) | dasmeta/grafana/onpremise | 1.29.0 |
+| <a name="module_this"></a> [this](#module\_this) | dasmeta/grafana/onpremise | 1.29.1 |
 
 ## Resources
 
