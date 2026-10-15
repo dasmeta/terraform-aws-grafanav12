@@ -2,7 +2,7 @@
 
 ## Phase 1: Evidence
 
-- [x] T001 Create the bounded Speckit package under `specs/006-bump-onpremise-1-32-0/`.
+- [x] T001 Create the bounded Speckit package under `specs/007-bump-onpremise-1-32-0/`.
 - [x] T002 Confirm the current wrapper pin is `1.30.0` and the target release is `1.32.0`.
 
 ## Phase 2: Dependency Update
