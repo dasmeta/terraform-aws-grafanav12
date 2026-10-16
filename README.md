@@ -82,7 +82,7 @@ bounded overlap/gap and does not backfill missing samples.
 The wrapper forwards `metrics_collector` and the complete `victoria_metrics`
 object unchanged. Its checked-in local child source is only for sibling-module
 validation. The registry source is pinned to published
-`dasmeta/grafana/onpremise` version `1.32.0`.
+`dasmeta/grafana/onpremise` version `1.32.1`.
 At this moment we support managing
 - Grafana stack
   - grafana
@@ -95,7 +95,7 @@ At this moment we support managing
 - Grafana Notification Policies with `notifications` submodule
 
 Environment-label based routing can be configured via existing `alerts.notifications.policies[*].matchers` rules, with a fallback `contact_point` for unmatched environments.
-This module pins `dasmeta/grafana/onpremise` to `1.32.0`.
+This module pins `dasmeta/grafana/onpremise` to `1.32.1`.
 
 ## Dedicated multi-environment routing test
 
@@ -286,7 +286,7 @@ module "this" {
 | <a name="module_loki_bucket"></a> [loki\_bucket](#module\_loki\_bucket) | dasmeta/s3/aws | 1.3.2 |
 | <a name="module_s3_eks_role"></a> [s3\_eks\_role](#module\_s3\_eks\_role) | dasmeta/iam/aws//modules/role | 1.3.0 |
 | <a name="module_tempo_bucket"></a> [tempo\_bucket](#module\_tempo\_bucket) | dasmeta/s3/aws | 1.3.2 |
-| <a name="module_this"></a> [this](#module\_this) | dasmeta/grafana/onpremise | 1.32.0 |
+| <a name="module_this"></a> [this](#module\_this) | dasmeta/grafana/onpremise | 1.32.1 |
 
 ## Resources
 
