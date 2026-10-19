@@ -163,3 +163,65 @@ locals {
   }
 
 }
+
+# EKS cluster level components monitoring
+locals {
+  karpenter_monitoring = var.eks_monitoring.karpenter
+
+  karpenter_scrape_enabled = local.karpenter_monitoring.enabled && local.karpenter_monitoring.scrape.enabled
+  karpenter_scrape_config = {
+    job_name              = local.karpenter_monitoring.service_name
+    kubernetes_sd_configs = [{ role = "endpoints" }]
+    relabel_configs = [
+      { action = "keep", source_labels = ["__meta_kubernetes_namespace", "__meta_kubernetes_service_name", "__meta_kubernetes_endpoint_port_name"], regex = "${local.karpenter_monitoring.namespace};${local.karpenter_monitoring.service_name};${local.karpenter_monitoring.scrape.port}" },
+      { action = "replace", source_labels = ["__meta_kubernetes_namespace"], target_label = "namespace" },
+      { action = "replace", source_labels = ["__meta_kubernetes_pod_name"], target_label = "pod" },
+    ]
+  }
+  # the scrape config goes to the active metrics collector only, a caller provided job with the same name wins
+  prometheus_karpenter_scrape_configs       = local.karpenter_scrape_enabled && var.metrics_collector == "prometheus" && !contains([for job in try(concat(var.prometheus.additional_scrape_configs, []), []) : try(job.job_name, "")], local.karpenter_monitoring.service_name) ? [local.karpenter_scrape_config] : []
+  victoria_metrics_karpenter_scrape_configs = local.karpenter_scrape_enabled && var.metrics_collector == "victoria_metrics" && !contains([for job in try(concat(var.victoria_metrics.agent.extra_scrape_configs, []), []) : try(job.job_name, "")], local.karpenter_monitoring.service_name) ? [local.karpenter_scrape_config] : []
+
+  karpenter_dashboard_enabled = local.karpenter_monitoring.enabled && local.karpenter_monitoring.dashboard.enabled
+  # the dashboard reuses the folder if the grafana stack already created it for other dashboards/alerts, otherwise creates its own
+  karpenter_dashboard_folder_uids = { for name, uid in module.this.folder_uids : name => uid if name == local.karpenter_monitoring.dashboard.folder_name }
+  karpenter_dashboard_rows = [
+    merge(
+      {
+        type          = "block/service"
+        block_name    = "Karpenter controller service state (kubernetes native metrics)"
+        name          = "controller" # karpenter container name, used for cpu/memory/restarts
+        workload_name = "karpenter"  # karpenter deployment name, used for replicas/network/logs
+        namespace     = local.karpenter_monitoring.namespace
+        disk_widgets  = { enabled = false }
+      },
+      local.karpenter_monitoring.dashboard.service,
+      {
+        alerts = provider::deepmerge::mergo(
+          {
+            map_namespace_to_env_label = false                                                             # put karpenter namespace into `namespace` label, `env` label stays for environment routing
+            defaults                   = { no_data_state = "OK", group = "Karpenter", stable_uids = true } # no karpenter deployment(cluster without karpenter) is not an issue, controller alerts share the karpenter alerts group, stable_uids keeps rule uids fixed when rules in the group change
+            cpu                        = { enabled = false }                                               # karpenter runs without cpu limit so there is nothing to compare usage with
+            replicas_no                = { pending_period = "1m" }                                         # the service block fires this on first evaluation(0s), wait a bit to skip short blips
+            restarts                   = { pending_period = "2m" }                                         # same for restarts, a single controller restart during upgrade should not page
+          },
+          local.karpenter_monitoring.alerts.service
+        )
+      }
+    ),
+    {
+      type       = "block/karpenter"
+      block_name = local.karpenter_monitoring.dashboard.karpenter_row_title
+      namespace  = local.karpenter_monitoring.namespace
+      # interruption widgets/alert are opt-in in the generic block, EKS karpenter handles spot interruptions through its SQS queue so they are on here
+      widgets = provider::deepmerge::mergo({ interruption = true }, local.karpenter_monitoring.dashboard.widgets)
+      alerts = provider::deepmerge::mergo(
+        {
+          metrics_scrape           = { job = local.karpenter_monitoring.service_name }
+          interruption_not_handled = { enabled = true }
+        },
+        local.karpenter_monitoring.alerts.karpenter
+      )
+    },
+  ]
+}

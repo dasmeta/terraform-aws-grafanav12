@@ -1,6 +1,6 @@
 module "this" {
   source  = "dasmeta/grafana/onpremise"
-  version = "1.32.1"
+  version = "1.33.0"
 
   application_dashboard          = var.application_dashboard
   deploy_grafana_stack_dashboard = var.deploy_grafana_stack_dashboard
@@ -37,17 +37,38 @@ module "this" {
   })
 
   prometheus = provider::deepmerge::mergo(var.prometheus, {
-    ingress   = local.prometheus_ingress
-    namespace = coalesce(var.prometheus.namespace, var.namespace)
+    ingress                   = local.prometheus_ingress
+    namespace                 = coalesce(var.prometheus.namespace, var.namespace)
+    additional_scrape_configs = concat(try(concat(var.prometheus.additional_scrape_configs, []), []), local.prometheus_karpenter_scrape_configs)
   })
 
   metrics_collector = var.metrics_collector
 
-  victoria_metrics = var.victoria_metrics
+  victoria_metrics = provider::deepmerge::mergo(var.victoria_metrics, {
+    agent = { extra_scrape_configs = concat(try(concat(var.victoria_metrics.agent.extra_scrape_configs, []), []), local.victoria_metrics_karpenter_scrape_configs) }
+  })
 
   grafana_admin_password = var.grafana_admin_password
 }
 
+
+# dedicated karpenter dashboard with its alerts, created as separate module so its rows do not need to share type with var.application_dashboard items
+module "karpenter_dashboard" {
+  count = local.karpenter_dashboard_enabled ? 1 : 0
+
+  source  = "dasmeta/grafana/onpremise//modules/dashboard"
+  version = "1.33.0"
+
+  name             = local.karpenter_monitoring.dashboard.name
+  folder_name      = local.karpenter_monitoring.dashboard.folder_name
+  folder_name_uids = local.karpenter_dashboard_folder_uids
+  create_folder    = length(local.karpenter_dashboard_folder_uids) == 0
+  data_source      = { uid = var.metrics_collector == "victoria_metrics" ? "victoriametrics" : "prometheus", type = "prometheus" }
+  rows             = local.karpenter_dashboard_rows
+  alerts           = { enabled = local.karpenter_monitoring.alerts.enabled }
+
+  depends_on = [module.this]
+}
 
 module "loki_bucket" {
   count = var.loki_stack.enabled ? 1 : 0
