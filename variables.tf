@@ -633,3 +633,39 @@ variable "deploy_grafana_stack_dashboard" {
   default     = true
   description = "Whether to deploy the grafana stack dashboard"
 }
+
+variable "eks_monitoring" {
+  type = object({
+    karpenter = optional(object({                  # karpenter node autoscaler monitoring: metrics scrape, dedicated dashboard and alerts
+      enabled      = optional(bool, true)          # whether karpenter monitoring is enabled, alerts stay silent on clusters without karpenter(no data is treated as OK)
+      namespace    = optional(string, "karpenter") # the namespace where karpenter is installed
+      service_name = optional(string, "karpenter") # the karpenter metrics service name, it is also used as scrape job name
+      scrape = optional(object({                   # karpenter metrics scrape config, added to the active metrics collector(prometheus or victoria_metrics agent)
+        enabled = optional(bool, true)             # whether to add scrape config for karpenter metrics, disable if karpenter metrics are already scraped some other way(the job name should then be set in alerts.karpenter.metrics_scrape.job)
+        port    = optional(string, "http-metrics") # the karpenter service metrics port name
+      }), {})
+      dashboard = optional(object({                                                       # the dedicated karpenter dashboard, it contains controller service block and karpenter block rows
+        enabled             = optional(bool, true)                                        # whether to create the karpenter dashboard, alerts are created along with dashboard so disabling dashboard disables alerts too
+        name                = optional(string, "Karpenter")                               # the dashboard name
+        folder_name         = optional(string, "EKS")                                     # the dashboard and its alerts folder
+        folder_uid          = optional(string, null)                                      # uid of an existing grafana folder to use(for example one managed outside this module), when set no folder is created or looked up, can not be combined with create_folder = true
+        create_folder       = optional(bool, null)                                        # null: reuse the folder if this module's grafana stack manages one with folder_name, otherwise create it; false: use an existing folder found by folder_name; true: always create the folder
+        karpenter_row_title = optional(string, "Karpenter exposed metrics based widgets") # the title of the karpenter metrics row, the controller row title can be set with `service = { block_name = "..." }`
+        widgets             = optional(any, {})                                           # karpenter block widget groups switches: nodes, drift, disruption, capacity, cloud_provider, controller, interruption(all true here, interruption is turned on by this module as EKS karpenter uses the SQS interruption queue)
+        service             = optional(any, {})                                           # extra options for the controller `block/service` row, for example `{ block_name = "Controller", log_widgets = { enabled = false } }`
+      }), {})
+      alerts = optional(object({         # karpenter alerts configs
+        enabled   = optional(bool, true) # whether karpenter alerts are enabled
+        service   = optional(any, {})    # controller pod alerts(standard `block/service` alerts) overrides, deep-merged over the module defaults: replicas_no/unavailable_replicas/restarts/memory are on, cpu is off as karpenter runs without cpu limit
+        karpenter = optional(any, {})    # karpenter specific alerts(`block/karpenter` alerts) overrides: node_drift_stuck(24h), node_not_initialized(30m), pods_pending(15m), scheduling_undecided(3m), node_launch_slow(5m), launch_errors, interruption_not_handled(turned on by this module for the EKS SQS interruption queue), nodepool_limit(90%), metrics_scrape are on, disruption_rate is off
+      }), {})
+    }), {})
+  })
+  default     = {}
+  description = "EKS cluster level components monitoring, enabled by default. Each component gets its metrics scrape, a dedicated dashboard and alerts"
+
+  validation {
+    condition     = !(var.eks_monitoring.karpenter.dashboard.folder_uid != null && var.eks_monitoring.karpenter.dashboard.create_folder == true)
+    error_message = "eks_monitoring.karpenter.dashboard: folder_uid points to an existing folder, so it can not be combined with create_folder = true."
+  }
+}
