@@ -62,7 +62,7 @@ module "karpenter_dashboard" {
   name             = local.karpenter_monitoring.dashboard.name
   folder_name      = local.karpenter_monitoring.dashboard.folder_name
   folder_name_uids = local.karpenter_dashboard_folder_uids
-  create_folder    = length(local.karpenter_dashboard_folder_uids) == 0
+  create_folder    = local.karpenter_dashboard_create_folder
   data_source      = { uid = var.metrics_collector == "victoria_metrics" ? "victoriametrics" : "prometheus", type = "prometheus" }
   rows             = local.karpenter_dashboard_rows
   alerts           = { enabled = local.karpenter_monitoring.alerts.enabled }

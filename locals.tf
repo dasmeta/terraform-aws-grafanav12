@@ -183,8 +183,12 @@ locals {
   victoria_metrics_karpenter_scrape_configs = local.karpenter_scrape_enabled && var.metrics_collector == "victoria_metrics" && !contains([for job in try(concat(var.victoria_metrics.agent.extra_scrape_configs, []), []) : try(job.job_name, "")], local.karpenter_monitoring.service_name) ? [local.karpenter_scrape_config] : []
 
   karpenter_dashboard_enabled = local.karpenter_monitoring.enabled && local.karpenter_monitoring.dashboard.enabled
-  # the dashboard reuses the folder if the grafana stack already created it for other dashboards/alerts, otherwise creates its own
-  karpenter_dashboard_folder_uids = { for name, uid in module.this.folder_uids : name => uid if name == local.karpenter_monitoring.dashboard.folder_name }
+  # folder: an explicit folder_uid wins, then a folder the grafana stack already manages with the same name; create_folder controls create vs lookup by title
+  karpenter_dashboard_folder_uids = local.karpenter_monitoring.dashboard.folder_uid != null ? { (local.karpenter_monitoring.dashboard.folder_name) = local.karpenter_monitoring.dashboard.folder_uid } : (
+    local.karpenter_monitoring.dashboard.create_folder == true ? {} : { for name, uid in module.this.folder_uids : name => uid if name == local.karpenter_monitoring.dashboard.folder_name }
+  )
+  # create only when no folder uid is known and create_folder is not false; create_folder = false with no uid looks the folder up by its title
+  karpenter_dashboard_create_folder = length(local.karpenter_dashboard_folder_uids) == 0 && local.karpenter_monitoring.dashboard.create_folder != false
   karpenter_dashboard_rows = [
     merge(
       {

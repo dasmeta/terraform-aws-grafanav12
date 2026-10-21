@@ -144,6 +144,41 @@ run "karpenter_monitoring_is_customizable" {
   }
 }
 
+run "karpenter_dashboard_creates_its_folder_by_default" {
+  command = plan
+
+  assert {
+    condition     = local.karpenter_dashboard_create_folder == true && length(local.karpenter_dashboard_folder_uids) == 0
+    error_message = "without an existing folder the karpenter dashboard must create its EKS folder"
+  }
+}
+
+run "karpenter_dashboard_uses_existing_folder_uid" {
+  command = plan
+
+  variables {
+    eks_monitoring = { karpenter = { dashboard = { folder_uid = "existing-eks-folder" } } }
+  }
+
+  assert {
+    condition     = local.karpenter_dashboard_create_folder == false && length(local.karpenter_dashboard_folder_uids) == 1 && local.karpenter_dashboard_folder_uids["EKS"] == "existing-eks-folder"
+    error_message = "folder_uid must point the dashboard and alerts at the existing folder without creating another one"
+  }
+}
+
+run "karpenter_dashboard_looks_up_existing_folder_by_title" {
+  command = plan
+
+  variables {
+    eks_monitoring = { karpenter = { dashboard = { create_folder = false } } }
+  }
+
+  assert {
+    condition     = local.karpenter_dashboard_create_folder == false && length(local.karpenter_dashboard_folder_uids) == 0
+    error_message = "create_folder = false must look up the existing folder by title instead of creating it"
+  }
+}
+
 run "karpenter_monitoring_can_be_disabled" {
   command = plan
 
