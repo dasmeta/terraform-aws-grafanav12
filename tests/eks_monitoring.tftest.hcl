@@ -179,6 +179,16 @@ run "karpenter_dashboard_looks_up_existing_folder_by_title" {
   }
 }
 
+run "karpenter_dashboard_rejects_folder_uid_with_create_folder" {
+  command = plan
+
+  variables {
+    eks_monitoring = { karpenter = { dashboard = { folder_uid = "existing-eks-folder", create_folder = true } } }
+  }
+
+  expect_failures = [var.eks_monitoring]
+}
+
 run "karpenter_monitoring_can_be_disabled" {
   command = plan
 

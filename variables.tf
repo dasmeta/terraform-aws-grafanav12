@@ -648,7 +648,7 @@ variable "eks_monitoring" {
         enabled             = optional(bool, true)                                        # whether to create the karpenter dashboard, alerts are created along with dashboard so disabling dashboard disables alerts too
         name                = optional(string, "Karpenter")                               # the dashboard name
         folder_name         = optional(string, "EKS")                                     # the dashboard and its alerts folder
-        folder_uid          = optional(string, null)                                      # uid of an existing grafana folder to use(for example one managed outside this module), when set no folder is created or looked up
+        folder_uid          = optional(string, null)                                      # uid of an existing grafana folder to use(for example one managed outside this module), when set no folder is created or looked up, can not be combined with create_folder = true
         create_folder       = optional(bool, null)                                        # null: reuse the folder if this module's grafana stack manages one with folder_name, otherwise create it; false: use an existing folder found by folder_name; true: always create the folder
         karpenter_row_title = optional(string, "Karpenter exposed metrics based widgets") # the title of the karpenter metrics row, the controller row title can be set with `service = { block_name = "..." }`
         widgets             = optional(any, {})                                           # karpenter block widget groups switches: nodes, drift, disruption, capacity, cloud_provider, controller, interruption(all true here, interruption is turned on by this module as EKS karpenter uses the SQS interruption queue)
@@ -663,4 +663,9 @@ variable "eks_monitoring" {
   })
   default     = {}
   description = "EKS cluster level components monitoring, enabled by default. Each component gets its metrics scrape, a dedicated dashboard and alerts"
+
+  validation {
+    condition     = !(var.eks_monitoring.karpenter.dashboard.folder_uid != null && var.eks_monitoring.karpenter.dashboard.create_folder == true)
+    error_message = "eks_monitoring.karpenter.dashboard: folder_uid points to an existing folder, so it can not be combined with create_folder = true."
+  }
 }
