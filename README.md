@@ -1,4 +1,4 @@
-# terraform-aws-grafana
+# terraform-aws-grafanav12
 
 This module is created(based on base module [`dasmeta/grafana/onpremise`](https://github.com/dasmeta/terraform-onpremise-grafana)) to manage grafana stack components on aws eks
 
