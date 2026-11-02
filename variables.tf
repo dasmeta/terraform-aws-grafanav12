@@ -37,35 +37,44 @@ variable "name_prefix" {
 }
 
 variable "application_dashboard" {
-  type = list(object({
-    name        = string
-    defaults    = optional(any, {})                         # allows to pass/override some general defaults for datasources and widgets
-    folder_name = optional(string, "application-dashboard") # the folder name for dashboard
-    namespace   = optional(string, "prod")
-    rows        = optional(any, [])
-    data_source = optional(object({
-      uid  = optional(string, "prometheus")
-      type = optional(string, "prometheus")
-    }), {})
-    variables = optional(list(object({ # Allows to define variables to be used in dashboard
-      name        = string
-      type        = optional(string, "custom")
-      hide        = optional(number, 0)
-      includeAll  = optional(bool, false)
-      multi       = optional(bool, false)
-      query       = optional(string, "")
-      queryValue  = optional(string, "")
-      skipUrlSync = optional(bool, false)
-      options = optional(list(object({
-        selected = optional(bool, false)
-        value    = string
-        text     = optional(string, null)
-      })), [])
-    })), [])
-    alerts = optional(any, { enabled = true }) # Allows to configure globally dashboard block/(sla|ingress|service) blocks/widgets related alerts
-  }))
   default     = []
-  description = "Dashboard for monitoring applications"
+  type        = any
+  description = <<-EOT
+    Dashboard configuration forwarded to dasmeta/grafana/onpremise. `type = any` is deliberate: dashboards and their rows can have block-specific, heterogeneous shapes that Terraform cannot safely coerce to one object type. Existing AWS wrapper defaults are preserved before forwarding.
+
+    Expected dashboard structure (documentation only):
+    ```hcl
+    application_dashboard = [
+      {
+        name                = string
+        defaults            = optional(any, {})
+        folder_name         = optional(string, "application-dashboard")
+        namespace           = optional(string, "prod")
+        rows                = optional(any, [])
+        time_range_hours    = optional(number, 6)
+        data_source         = optional({ uid = optional(string), type = optional(string, "prometheus") }, {})
+        loki_datasource_uid = optional(string, "loki")
+        variables = optional(list(object({
+          name             = string
+          type             = optional(string, "custom")
+          hide             = optional(number, 0)
+          includeAll       = optional(bool, false)
+          multi            = optional(bool, false)
+          query            = optional(string, "")
+          queryValue       = optional(string, "")
+          skipUrlSync      = optional(bool, false)
+          allowCustomValue = optional(bool, false)
+          options = optional(list(object({
+            selected = optional(bool, false)
+            value    = string
+            text     = optional(string)
+          })), [])
+        })), [])
+        alerts = optional(any, { enabled = true })
+      }
+    ]
+    ```
+  EOT
 }
 
 variable "alerts" {
