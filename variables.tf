@@ -39,7 +39,42 @@ variable "name_prefix" {
 variable "application_dashboard" {
   default     = []
   type        = any
-  description = "Dashboard configuration forwarded to dasmeta/grafana/onpremise. The value may contain heterogeneous dashboard and block-row objects; existing wrapper defaults are preserved before forwarding."
+  description = <<-EOT
+    Dashboard configuration forwarded to dasmeta/grafana/onpremise. `type = any` is deliberate: dashboards and their rows can have block-specific, heterogeneous shapes that Terraform cannot safely coerce to one object type. Existing AWS wrapper defaults are preserved before forwarding.
+
+    Expected dashboard structure (documentation only):
+    ```hcl
+    application_dashboard = [
+      {
+        name                = string
+        defaults            = optional(any, {})
+        folder_name         = optional(string, "application-dashboard")
+        namespace           = optional(string, "prod")
+        rows                = optional(any, [])
+        time_range_hours    = optional(number, 6)
+        data_source         = optional({ uid = optional(string), type = optional(string, "prometheus") }, {})
+        loki_datasource_uid = optional(string, "loki")
+        variables = optional(list(object({
+          name             = string
+          type             = optional(string, "custom")
+          hide             = optional(number, 0)
+          includeAll       = optional(bool, false)
+          multi            = optional(bool, false)
+          query            = optional(string, "")
+          queryValue       = optional(string, "")
+          skipUrlSync      = optional(bool, false)
+          allowCustomValue = optional(bool, false)
+          options = optional(list(object({
+            selected = optional(bool, false)
+            value    = string
+            text     = optional(string)
+          })), [])
+        })), [])
+        alerts = optional(any, { enabled = true })
+      }
+    ]
+    ```
+  EOT
 }
 
 variable "alerts" {
