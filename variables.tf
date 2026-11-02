@@ -37,35 +37,9 @@ variable "name_prefix" {
 }
 
 variable "application_dashboard" {
-  type = list(object({
-    name        = string
-    defaults    = optional(any, {})                         # allows to pass/override some general defaults for datasources and widgets
-    folder_name = optional(string, "application-dashboard") # the folder name for dashboard
-    namespace   = optional(string, "prod")
-    rows        = optional(any, [])
-    data_source = optional(object({
-      uid  = optional(string, "prometheus")
-      type = optional(string, "prometheus")
-    }), {})
-    variables = optional(list(object({ # Allows to define variables to be used in dashboard
-      name        = string
-      type        = optional(string, "custom")
-      hide        = optional(number, 0)
-      includeAll  = optional(bool, false)
-      multi       = optional(bool, false)
-      query       = optional(string, "")
-      queryValue  = optional(string, "")
-      skipUrlSync = optional(bool, false)
-      options = optional(list(object({
-        selected = optional(bool, false)
-        value    = string
-        text     = optional(string, null)
-      })), [])
-    })), [])
-    alerts = optional(any, { enabled = true }) # Allows to configure globally dashboard block/(sla|ingress|service) blocks/widgets related alerts
-  }))
   default     = []
-  description = "Dashboard for monitoring applications"
+  type        = any
+  description = "Dashboard configuration forwarded to dasmeta/grafana/onpremise. The value may contain heterogeneous dashboard and block-row objects; existing wrapper defaults are preserved before forwarding."
 }
 
 variable "alerts" {

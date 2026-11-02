@@ -1,5 +1,32 @@
 locals {
 
+  # Preserve the former wrapper input defaults while allowing block-specific row objects.
+  application_dashboard_defaults = {
+    folder_name = "application-dashboard"
+    namespace   = "prod"
+    defaults    = {}
+    rows        = []
+    data_source = {
+      uid  = "prometheus"
+      type = "prometheus"
+    }
+    variables = []
+    alerts    = { enabled = true }
+  }
+
+  application_dashboards = [
+    for dashboard in var.application_dashboard : merge(
+      local.application_dashboard_defaults,
+      dashboard,
+      {
+        data_source = merge(
+          local.application_dashboard_defaults.data_source,
+          try(dashboard.data_source, {})
+        )
+      }
+    )
+  ]
+
   # General configurations
   eks_oidc_provider_arn = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:oidc-provider/${replace(data.aws_eks_cluster.this.identity[0].oidc[0].issuer, "https://", "")}"
   s3_aws_policies = [
