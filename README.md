@@ -317,11 +317,11 @@ module "this" {
 | Name | Source | Version |
 |------|--------|---------|
 | <a name="module_grafana_cloudwatch_role"></a> [grafana\_cloudwatch\_role](#module\_grafana\_cloudwatch\_role) | dasmeta/iam/aws//modules/role | 1.3.0 |
-| <a name="module_karpenter_dashboard"></a> [karpenter\_dashboard](#module\_karpenter\_dashboard) | dasmeta/grafana/onpremise//modules/dashboard | 1.33.1 |
+| <a name="module_karpenter_dashboard"></a> [karpenter\_dashboard](#module\_karpenter\_dashboard) | dasmeta/grafana/onpremise//modules/dashboard | 1.33.2 |
 | <a name="module_loki_bucket"></a> [loki\_bucket](#module\_loki\_bucket) | dasmeta/s3/aws | 1.3.2 |
 | <a name="module_s3_eks_role"></a> [s3\_eks\_role](#module\_s3\_eks\_role) | dasmeta/iam/aws//modules/role | 1.3.0 |
 | <a name="module_tempo_bucket"></a> [tempo\_bucket](#module\_tempo\_bucket) | dasmeta/s3/aws | 1.3.2 |
-| <a name="module_this"></a> [this](#module\_this) | dasmeta/grafana/onpremise | 1.33.1 |
+| <a name="module_this"></a> [this](#module\_this) | dasmeta/grafana/onpremise | 1.33.2 |
 
 ## Resources
 
