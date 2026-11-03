@@ -480,6 +480,7 @@ variable "tempo" {
       enabled    = optional(bool, true)
       remote_url = optional(string, "http://prometheus-kube-prometheus-prometheus.monitoring.svc.cluster.local:9090/api/v1/write")
     }))
+    service_graph_dimensions = optional(list(string), []) # Optional Tempo metric labels from trace attributes; each label increases series cardinality.
 
     persistence = optional(object({
       enabled       = optional(bool, true)
