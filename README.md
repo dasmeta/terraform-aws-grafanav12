@@ -93,7 +93,7 @@ bounded overlap/gap and does not backfill missing samples.
 The wrapper forwards `metrics_collector` and the complete `victoria_metrics`
 object unchanged. Its checked-in local child source is only for sibling-module
 validation. The registry source is pinned to published
-`dasmeta/grafana/onpremise` version `1.33.1`.
+`dasmeta/grafana/onpremise` version `2.0.0`.
 At this moment we support managing
 - Grafana stack
   - grafana
@@ -106,7 +106,7 @@ At this moment we support managing
 - Grafana Notification Policies with `notifications` submodule
 
 Environment-label based routing can be configured via existing `alerts.notifications.policies[*].matchers` rules, with a fallback `contact_point` for unmatched environments.
-This module pins `dasmeta/grafana/onpremise` to `1.33.1`.
+This module pins `dasmeta/grafana/onpremise` to `2.0.0`.
 
 `application_dashboard` accepts block-specific, heterogeneous row shapes. A
 service row, an AWS SES row, and an SLA row can coexist without adding unused
@@ -328,11 +328,11 @@ module "this" {
 | Name | Source | Version |
 |------|--------|---------|
 | <a name="module_grafana_cloudwatch_role"></a> [grafana\_cloudwatch\_role](#module\_grafana\_cloudwatch\_role) | dasmeta/iam/aws//modules/role | 1.3.0 |
-| <a name="module_karpenter_dashboard"></a> [karpenter\_dashboard](#module\_karpenter\_dashboard) | dasmeta/grafana/onpremise//modules/dashboard | 1.33.1 |
+| <a name="module_karpenter_dashboard"></a> [karpenter\_dashboard](#module\_karpenter\_dashboard) | dasmeta/grafana/onpremise//modules/dashboard | 2.0.0 |
 | <a name="module_loki_bucket"></a> [loki\_bucket](#module\_loki\_bucket) | dasmeta/s3/aws | 1.3.2 |
 | <a name="module_s3_eks_role"></a> [s3\_eks\_role](#module\_s3\_eks\_role) | dasmeta/iam/aws//modules/role | 1.3.0 |
 | <a name="module_tempo_bucket"></a> [tempo\_bucket](#module\_tempo\_bucket) | dasmeta/s3/aws | 1.3.2 |
-| <a name="module_this"></a> [this](#module\_this) | dasmeta/grafana/onpremise | 1.33.1 |
+| <a name="module_this"></a> [this](#module\_this) | dasmeta/grafana/onpremise | 2.0.0 |
 
 ## Resources
 
