@@ -6,7 +6,17 @@ on:
 jobs:
   tfsec-check:
     runs-on: ubuntu-latest
-    permissions: {}
+    permissions:
+      contents: read
+      security-events: write
     steps:
-      - uses: dasmeta/reusable-actions-workflows/tfsec@4.2.0
-    continue-on-error: true
+      - uses: actions/checkout@v4
+      - uses: aquasecurity/tfsec-sarif-action@v0.1.4
+        with:
+          sarif_file: tfsec.sarif
+          # tfsec cannot parse Terraform provider-defined function calls in locals.tf.
+          # Terraform validation checks the full configuration separately.
+          tfsec_args: --ignore-hcl-errors
+      - uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: tfsec.sarif
