@@ -1,6 +1,5 @@
 module "this" {
-  source  = "dasmeta/grafana/onpremise"
-  version = "1.34.0"
+  source = "git::https://github.com/dasmeta/terraform-onpremise-grafana.git?ref=f9c23602a2246012ab60019cbb224ef17b7e5f1a"
 
   application_dashboard          = local.application_dashboards
   deploy_grafana_stack_dashboard = var.deploy_grafana_stack_dashboard
@@ -56,8 +55,7 @@ module "this" {
 module "karpenter_dashboard" {
   count = local.karpenter_dashboard_enabled ? 1 : 0
 
-  source  = "dasmeta/grafana/onpremise//modules/dashboard"
-  version = "1.34.0"
+  source = "git::https://github.com/dasmeta/terraform-onpremise-grafana.git//modules/dashboard?ref=f9c23602a2246012ab60019cbb224ef17b7e5f1a"
 
   name             = local.karpenter_monitoring.dashboard.name
   folder_name      = local.karpenter_monitoring.dashboard.folder_name
