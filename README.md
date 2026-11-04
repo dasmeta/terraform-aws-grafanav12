@@ -6,12 +6,19 @@ This module is created(based on base module [`dasmeta/grafana/onpremise`](https:
 
 This wrapper selects the Grafana community Helm chart `14.3.1`, which packages
 Grafana `13.3.0`. The chart repository and version are configurable through
-`grafana.chart_repository` and `grafana.chart_version`. The base onpremise
-module must first publish the release that adds `chart_repository` support.
+`grafana.chart_repository` and `grafana.chart_version`. This wrapper pins the
+released `dasmeta/grafana/onpremise` v2.0.0 module.
 
 Back up Grafana's database and test sign-in, data sources, dashboards, and
 alerting in a nonproduction environment before applying the new wrapper
 version to production.
+
+## Tempo service graph
+
+The v2.0.0 base module also enables Tempo service-graph and span-metrics
+processors when both Tempo and VictoriaMetrics are enabled. It configures the
+Tempo datasource with `tracesToMetrics`, `serviceMap`, and `nodeGraph` so
+Grafana can query the generated service-graph metrics.
 
 The wrapper exposes the onpremise module's selectable metrics collector. The
 backend flags install components independently, while `metrics_collector`
