@@ -1,6 +1,6 @@
 module "this" {
   source  = "dasmeta/grafana/onpremise"
-  version = "2.0.0"
+  version = "2.0.1"
 
   application_dashboard          = local.application_dashboards
   deploy_grafana_stack_dashboard = var.deploy_grafana_stack_dashboard
@@ -57,7 +57,7 @@ module "karpenter_dashboard" {
   count = local.karpenter_dashboard_enabled ? 1 : 0
 
   source  = "dasmeta/grafana/onpremise//modules/dashboard"
-  version = "2.0.0"
+  version = "2.0.1"
 
   name             = local.karpenter_monitoring.dashboard.name
   folder_name      = local.karpenter_monitoring.dashboard.folder_name
