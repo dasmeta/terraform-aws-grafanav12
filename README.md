@@ -7,7 +7,7 @@ This module is created(based on base module [`dasmeta/grafana/onpremise`](https:
 This wrapper selects the Grafana community Helm chart `14.3.1`, which packages
 Grafana `13.3.0`. The chart repository and version are configurable through
 `grafana.chart_repository` and `grafana.chart_version`. This wrapper pins the
-released `dasmeta/grafana/onpremise` v2.0.1 module.
+released `dasmeta/grafana/onpremise` v2.0.2 module.
 
 Back up Grafana's database and test sign-in, data sources, dashboards, and
 alerting in a nonproduction environment before applying the new wrapper
@@ -15,7 +15,7 @@ version to production.
 
 ## Tempo service graph
 
-The v2.0.1 base module also enables Tempo service-graph and span-metrics
+The v2.0.2 base module also enables Tempo service-graph and span-metrics
 processors when both Tempo and VictoriaMetrics are enabled. It configures the
 Tempo datasource with `tracesToMetrics`, `serviceMap`, and `nodeGraph` so
 Grafana can query the generated service-graph metrics.
@@ -100,7 +100,7 @@ bounded overlap/gap and does not backfill missing samples.
 The wrapper forwards `metrics_collector` and the complete `victoria_metrics`
 object unchanged. Its checked-in local child source is only for sibling-module
 validation. The registry source is pinned to published
-`dasmeta/grafana/onpremise` version `2.0.1`.
+`dasmeta/grafana/onpremise` version `2.0.2`.
 At this moment we support managing
 - Grafana stack
   - grafana
@@ -113,7 +113,7 @@ At this moment we support managing
 - Grafana Notification Policies with `notifications` submodule
 
 Environment-label based routing can be configured via existing `alerts.notifications.policies[*].matchers` rules, with a fallback `contact_point` for unmatched environments.
-This module pins `dasmeta/grafana/onpremise` to `2.0.1`.
+This module pins `dasmeta/grafana/onpremise` to `2.0.2`.
 
 `application_dashboard` accepts block-specific, heterogeneous row shapes. A
 service row, an AWS SES row, and an SLA row can coexist without adding unused
@@ -335,11 +335,11 @@ module "this" {
 | Name | Source | Version |
 |------|--------|---------|
 | <a name="module_grafana_cloudwatch_role"></a> [grafana\_cloudwatch\_role](#module\_grafana\_cloudwatch\_role) | dasmeta/iam/aws//modules/role | 1.3.0 |
-| <a name="module_karpenter_dashboard"></a> [karpenter\_dashboard](#module\_karpenter\_dashboard) | dasmeta/grafana/onpremise//modules/dashboard | 2.0.1 |
+| <a name="module_karpenter_dashboard"></a> [karpenter\_dashboard](#module\_karpenter\_dashboard) | dasmeta/grafana/onpremise//modules/dashboard | 2.0.2 |
 | <a name="module_loki_bucket"></a> [loki\_bucket](#module\_loki\_bucket) | dasmeta/s3/aws | 1.3.2 |
 | <a name="module_s3_eks_role"></a> [s3\_eks\_role](#module\_s3\_eks\_role) | dasmeta/iam/aws//modules/role | 1.3.0 |
 | <a name="module_tempo_bucket"></a> [tempo\_bucket](#module\_tempo\_bucket) | dasmeta/s3/aws | 1.3.2 |
-| <a name="module_this"></a> [this](#module\_this) | dasmeta/grafana/onpremise | 2.0.1 |
+| <a name="module_this"></a> [this](#module\_this) | dasmeta/grafana/onpremise | 2.0.2 |
 
 ## Resources
 
