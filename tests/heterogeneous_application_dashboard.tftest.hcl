@@ -30,7 +30,7 @@ run "heterogeneous_application_dashboard_rows_are_accepted" {
   variables {
     application_dashboard = [
       {
-        name = "service-and-email"
+        name = "a-service-and-email"
         rows = [
           {
             type      = "block/service"
@@ -67,5 +67,30 @@ run "heterogeneous_application_dashboard_rows_are_accepted" {
   assert {
     condition     = contains(keys(module.this.blocks_by_type), "service")
     error_message = "heterogeneous application dashboard rows must reach the on-premise dashboard module"
+  }
+}
+
+run "heterogeneous_victoria_metrics_scrape_jobs_are_accepted" {
+  command = plan
+
+  variables {
+    metrics_collector = "victoria_metrics"
+    prometheus        = { enabled = false }
+    victoria_metrics = {
+      enabled  = true
+      operator = { enabled = true }
+      agent = {
+        extra_scrape_configs = [
+          { job_name = "discovery", kubernetes_sd_configs = [{ role = "pod" }] },
+          { job_name = "static", scrape_interval = "15s", static_configs = [{ targets = ["example.invalid:9090"] }] },
+          { job_name = "relabeled", relabel_configs = [{ action = "keep", regex = "example" }] },
+        ]
+      }
+    }
+  }
+
+  assert {
+    condition     = module.this.metrics_collector_status.victoria_metrics_agent_enabled
+    error_message = "Differently shaped scrape jobs must pass through the AWS wrapper to the VictoriaMetrics agent."
   }
 }
