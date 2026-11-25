@@ -44,9 +44,9 @@ run "karpenter_monitoring_is_enabled_by_default" {
 
   assert {
     condition = alltrue([
-      length([for rule in flatten(module.karpenter_dashboard[*].widget_alert_rules) : rule if strcontains(try(rule.expr, ""), "kube_deployment_status_replicas_available{deployment='karpenter', namespace='karpenter'}")]) > 0,
-      length([for rule in flatten(module.karpenter_dashboard[*].widget_alert_rules) : rule if strcontains(try(rule.expr, ""), "container_memory_working_set_bytes{container='controller', namespace='karpenter'}")]) == 1,
-      length([for rule in flatten(module.karpenter_dashboard[*].widget_alert_rules) : rule if strcontains(try(rule.expr, ""), "container_cpu_usage_seconds_total{container='controller'")]) == 0,
+      length([for rule in flatten(module.karpenter_dashboard[*].widget_alert_rules) : rule if try(strcontains(rule.expr, "kube_deployment_status_replicas_available{deployment='karpenter', namespace='karpenter'}"), false)]) > 0,
+      length([for rule in flatten(module.karpenter_dashboard[*].widget_alert_rules) : rule if try(strcontains(rule.expr, "container_memory_working_set_bytes{container='controller', namespace='karpenter'}"), false)]) == 1,
+      length([for rule in flatten(module.karpenter_dashboard[*].widget_alert_rules) : rule if try(strcontains(rule.expr, "container_cpu_usage_seconds_total{container='controller'"), false)]) == 0,
     ])
     error_message = "controller service alerts must use karpenter deployment/controller container and skip cpu"
   }
@@ -131,8 +131,8 @@ run "karpenter_monitoring_is_customizable" {
     condition = alltrue([
       length([for rule in flatten(module.karpenter_dashboard[*].widget_alert_rules) : rule if strcontains(rule.name, "Karpenter: node is stuck in drifted state for more than 48 hours") && strcontains(rule.expr, "namespace=\"kube-system\"")]) == 1,
       length([for rule in flatten(module.karpenter_dashboard[*].widget_alert_rules) : rule if strcontains(rule.name, "pods are pending")]) == 0,
-      length([for rule in flatten(module.karpenter_dashboard[*].widget_alert_rules) : rule if strcontains(try(rule.expr, ""), "kube_pod_container_status_restarts_total{") && strcontains(try(rule.expr, ""), "controller")]) == 0,
-      length([for rule in flatten(module.karpenter_dashboard[*].widget_alert_rules) : rule if strcontains(try(rule.expr, ""), "container_cpu_usage_seconds_total{container='controller'")]) == 1,
+      length([for rule in flatten(module.karpenter_dashboard[*].widget_alert_rules) : rule if try(strcontains(rule.expr, "kube_pod_container_status_restarts_total{"), false) && try(strcontains(rule.expr, "controller"), false)]) == 0,
+      length([for rule in flatten(module.karpenter_dashboard[*].widget_alert_rules) : rule if try(strcontains(rule.expr, "container_cpu_usage_seconds_total{container='controller'"), false)]) == 1,
       length([for rule in flatten(module.karpenter_dashboard[*].widget_alert_rules) : rule if strcontains(rule.name, "Karpenter: interruption messages are not handled")]) == 0,
     ])
     error_message = "karpenter alerts must follow namespace, threshold and enable overrides, module defaults(cpu off, interruption on) must be overridable both ways"

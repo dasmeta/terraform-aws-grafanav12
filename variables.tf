@@ -679,3 +679,24 @@ variable "eks_monitoring" {
     error_message = "eks_monitoring.karpenter.dashboard: folder_uid points to an existing folder, so it can not be combined with create_folder = true."
   }
 }
+
+variable "cloudwatch_slack" {
+  type = object({
+    enabled               = optional(bool, false)     # Create an adapter for existing CloudWatch alarm SNS topics.
+    topic_arn             = optional(string, null)    # Existing same-account standard SNS topic in the default provider region.
+    additional_topic_arns = optional(set(string), []) # Additional existing topics in default-enabled commercial regions.
+    contact_point         = optional(string, "Slack") # Existing webhook-based Slack contact point to reuse.
+    function_name         = optional(string, null)    # Unique adapter function name; default derives from name_prefix.
+    log_retention_days    = optional(number, 7)       # Retention for adapter logs; failed invocations also have a DLQ.
+  })
+  default     = {}
+  description = "Opt-in CloudWatch SNS to Slack routing. Reuses an existing Slack contact point and never creates or adopts source topics."
+  validation {
+    condition     = !var.cloudwatch_slack.enabled || can(regex("^arn:aws:sns:[a-z0-9-]+:[0-9]{12}:[A-Za-z0-9_-]+$", var.cloudwatch_slack.topic_arn))
+    error_message = "Enabled cloudwatch_slack requires a standard SNS topic_arn in the default AWS provider region."
+  }
+  validation {
+    condition     = alltrue([for arn in var.cloudwatch_slack.additional_topic_arns : can(regex("^arn:aws:sns:[a-z0-9-]+:[0-9]{12}:[A-Za-z0-9_-]+$", arn))])
+    error_message = "additional_topic_arns must contain standard commercial SNS topic ARNs; FIFO topics are unsupported."
+  }
+}
